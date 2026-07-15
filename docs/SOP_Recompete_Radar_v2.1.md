@@ -306,8 +306,14 @@ git push
   above.
 
 ### 6.8 Step 8 — Streamlit Cloud reboot & confirm
-Streamlit Cloud auto-redeploys on push. If the app was stopped, perform a manual **Reboot** in
-the Streamlit dashboard (owner-only action).
+Streamlit Cloud syncs files on push but does **not** reliably restart the running process.
+Perform a manual **Reboot** in the Streamlit dashboard (owner-only action) after **every push
+that changes app code or data** — docs-only pushes excepted. Why this is unconditional
+(2026-07-15 incident): `st.navigation` re-reads view *files* from disk each run, but imported
+*modules* stay cached in `sys.modules` for the life of the process, so a new view file can hit
+a stale in-memory module and throw a live ImportError under fully green CI; the same skew
+earlier served a stale cached table. A reboot is the only step that gives the process one
+consistent tree.
 
 - Confirm the live app at `govconradar.streamlit.app` shows the new **PUBLIC DATA SNAPSHOT** badge
   and the snapshot-freshness banner reflecting `<YYYY-MM-DD>`.
