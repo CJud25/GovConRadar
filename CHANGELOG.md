@@ -4,6 +4,23 @@ All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project versions the **scorer**
 (`SCORER_VERSION`) alongside the app.
 
+## [2.5.0] — 2026-07-15 — Outcome-label rails: gated precision@50 + rank stability
+
+### Added
+- **Gated precision@50** — the disclosed top-50 outcome sample (shipped demo-profile
+  ranking, and the Methodology page says so) publishes a precision number only past
+  ≥40 determinable hand labels, with its n and a 95% Wilson interval. Until then the row
+  reads "not yet measured" with the current count. Undeterminable and out-of-scope rates
+  plus a labeled-progress counter publish immediately — refusals are always publishable.
+  Positive evidence rules: `ended` is never inferred from an invisible successor.
+- **Rank-stability accumulator** — median top-50 overlap and tier-migration share across
+  adjacent comparable snapshots, gated on 3+ comparable snapshots. Publishing now
+  (3 comparable snapshots exist): top-50 overlap median 0.99, tier migration 0.24% —
+  describes ranking churn between snapshots, never accuracy.
+- Methodology's Measured-trust section explains the outcome-labeling program (stratified
+  FY2023–FY2024 sample + disclosed top-50, awardee-blind) while the gate is closed; every
+  count in the copy is computed from the metric rows, never hardcoded.
+
 ## [2.4.0] — 2026-07-15 — Eligibility lane, deterministic capture brief, freshness surfaces
 
 ### Added

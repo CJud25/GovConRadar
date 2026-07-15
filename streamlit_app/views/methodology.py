@@ -184,6 +184,12 @@ else:
         "lead_time_flagged_after_rate": "Lead time — flagged-after-notice share",
         "lead_time_censored_share": "Lead time — censored share",
         "lead_time_window_precedes_n": "Lead time — notices predating the window",
+        "precision_at_50": "Outcome precision — disclosed top-50",
+        "outcome_undeterminable_rate": "Outcome labels — undeterminable share",
+        "outcome_out_of_scope_rate": "Outcome labels — out-of-scope share",
+        "outcome_labeled_n": "Outcome labels — filled (progress counter)",
+        "rank_stability_overlap_at_50": "Rank stability — top-50 overlap (median)",
+        "rank_stability_tier_migration_share": "Rank stability — tier migration (median)",
     }
     for _, _row_ in _app_rows.iterrows():
         _label = _LABELS.get(str(_row_["metric"]), str(_row_["metric"]))
@@ -201,6 +207,31 @@ else:
             )
         else:
             st.markdown(f"- **{_label}:** *not yet measured* — {_note}", unsafe_allow_html=True)
+
+    # S37 — the outcome-precision explainer, rendered ONLY while the gate is closed;
+    # every number in it is computed from the metric rows, never hardcoded.
+    _p50 = _app_rows[_app_rows["metric"] == "precision_at_50"]
+    _rank = _app_rows[_app_rows["metric"] == "rank_stability_overlap_at_50"]
+    if len(_p50) and str(_p50.iloc[0]["gate_state"]) != "published":
+        if len(_rank) and str(_rank.iloc[0]["gate_state"]) == "published":
+            _stability_tail = (
+                "**Rank stability** publishes at 3+ comparable snapshots — published above "
+                "from the current accumulator."
+            )
+        elif len(_rank):
+            _n_snaps = str(_rank.iloc[0]["note"]).split(" ", 1)[0]
+            _n_snaps = _n_snaps if _n_snaps.isdigit() else "0"
+            _stability_tail = f"**Rank stability** publishes at 3+ comparable snapshots ({_n_snaps} exist today)."
+        else:
+            _stability_tail = "**Rank stability** publishes at 3+ comparable snapshots."
+        st.markdown(
+            "**Outcome precision (top-50):** not yet measured. A stratified sample of ~150 "
+            "FY2023–FY2024 potential-end contracts plus the disclosed top-50 are being "
+            "hand-labeled awardee-blind against notice archives (`docs/labeling_protocol.md`). "
+            "The number publishes at ≥40 determinable labels of the top-50, with its n and "
+            "95% Wilson interval. Undeterminable and out-of-scope rates publish immediately "
+            "as labeling progresses — refusals are always publishable. " + _stability_tail
+        )
 
 st.subheader("Facts vs. estimates")
 st.markdown(

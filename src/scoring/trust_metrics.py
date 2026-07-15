@@ -13,11 +13,12 @@ restatement, pinned to its source by a mirror test in the untyped test layer.
 """
 
 import math
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import cast
 
 import pandas as pd
 
+from labels.taxonomy import CONTINUATION_OUTCOMES
 from scoring.successor_proxy import SUCCESSOR_BASES
 
 METRIC_COLUMNS: tuple[str, ...] = (
@@ -209,6 +210,126 @@ def link_precision_rows(link_labels: pd.DataFrame, cfg: Mapping[str, object]) ->
     return _frame(rows)
 
 
+# Pinned published-note copy for precision_at_50 (verbatim per the approved plan).
+_PRECISION_AT_50_NOTE = (
+    "share of the disclosed top-50 sample (shipped demo-profile ranking) with positive "
+    "evidence the work continued — recompete, bridge, vehicle migration, sole-source "
+    "follow-on, consolidation/split, or an out-of-scope successor; `ended` requires "
+    "positive evidence; undeterminables excluded and disclosed. Not a win rate. "
+    "Not a probability."
+)
+
+
+def precision_at_50_rows(outcome_labels: pd.DataFrame, cfg: Mapping[str, object]) -> pd.DataFrame:
+    """Gated precision@50 over the disclosed top-50 outcome sample, plus the
+    always-publishable progress/refusal rates. Universe: sample_set in ("top50",
+    "both"). determinable = filled and != "undeterminable"; positive = a
+    CONTINUATION_OUTCOMES member (a taxonomy change moves this by construction);
+    negative = "ended" (positive evidence only). Blank rows count as unlabeled,
+    never as negatives."""
+    sec = _section(cfg, "outcome_labels")
+    floor = _cfg_int(sec, "min_determinable_for_precision")
+    z = _cfg_float(cfg, "wilson_z")
+
+    if len(outcome_labels):
+        uni = outcome_labels[outcome_labels["sample_set"].astype(str).isin(("top50", "both"))]
+        labels = uni["outcome_label"].astype(str).str.strip()
+    else:
+        labels = pd.Series(dtype=str)
+    universe_n = int(len(labels))
+    filled = labels[labels != ""]
+    labeled_n = int(len(filled))
+    undeterminable = int((filled == "undeterminable").sum())
+    out_of_scope = int((filled == "successor_out_of_scope").sum())
+    positives = int(filled.isin(CONTINUATION_OUTCOMES).sum())
+    determinable = labeled_n - undeterminable
+
+    rows: list[dict[str, object]] = []
+    if determinable >= floor:
+        lo, hi = wilson_interval(positives, determinable, z)
+        rows.append(
+            _row(
+                "precision_at_50",
+                value=positives / determinable,
+                n=determinable,
+                ci=(lo, hi),
+                gate_state="published",
+                note=_PRECISION_AT_50_NOTE,
+                surface="app",
+            )
+        )
+    else:
+        rows.append(
+            _row(
+                "precision_at_50",
+                value=None,
+                n=determinable,
+                ci=None,
+                gate_state="not_yet_measured",
+                note=(
+                    f"not yet measured — {determinable} of the >={floor} determinable outcome "
+                    "labels the disclosed top-50 sample needs before a precision number publishes"
+                ),
+                surface="app",
+            )
+        )
+    if labeled_n >= 1:
+        rows.append(
+            _row(
+                "outcome_undeterminable_rate",
+                value=undeterminable / labeled_n,
+                n=labeled_n,
+                ci=None,
+                gate_state="published",
+                note=(
+                    "share of filled top-50 outcome labels judged undeterminable from public "
+                    "data — refusals are always publishable"
+                ),
+                surface="app",
+            )
+        )
+        rows.append(
+            _row(
+                "outcome_out_of_scope_rate",
+                value=out_of_scope / labeled_n,
+                n=labeled_n,
+                ci=None,
+                gate_state="published",
+                note=(
+                    "share of filled top-50 outcome labels whose successor sits outside this "
+                    "dataset's scope (e.g. assisted acquisition) — the work continued where our "
+                    "window can't see"
+                ),
+                surface="app",
+            )
+        )
+    else:
+        for metric in ("outcome_undeterminable_rate", "outcome_out_of_scope_rate"):
+            rows.append(
+                _row(
+                    metric,
+                    value=None,
+                    n=0,
+                    ci=None,
+                    gate_state="not_yet_measured",
+                    note="no top-50 outcome verdicts filled yet — a share of nothing is not a number",
+                    surface="app",
+                )
+            )
+    rows.append(
+        _row(
+            "outcome_labeled_n",
+            value=float(labeled_n),
+            n=universe_n,
+            ci=None,
+            gate_state="published",
+            note=f"{labeled_n} of {universe_n} disclosed top-50 worksheet rows labeled (progress counter)",
+            surface="app",
+        )
+    )
+    return _frame(rows)
+
+
 def abstention_rows(candidates: pd.DataFrame) -> pd.DataFrame:
     """Always-publishable honesty rates over the PREPARED candidates frame (the
     assembly layer joins dim_vendor.vulnerability_basis onto candidates by
@@ -393,6 +514,88 @@ def lead_time_rows(
             "lead_time_window_precedes_n",
         ):
             rows.append(_row(metric, value=None, n=0, ci=None, gate_state="not_yet_measured", note=note, surface="app"))
+    return _frame(rows)
+
+
+_RANK_STABILITY_PUBLISHED_NOTE = (
+    "median across adjacent comparable snapshot pairs (top-50 by the shipped demo-profile "
+    "ranking); describes ranking churn between snapshots, not accuracy"
+)
+
+
+def _stability_gate_note(n_snaps: int) -> str:
+    return (
+        f"{n_snaps} comparable snapshots exist; stability publishes at 3+ — pre-migration "
+        "snapshots are un-diffable (candidate-id migration 2026-07-07)"
+    )
+
+
+def rank_stability_rows(
+    snapshot_tops: Sequence[tuple[str, frozenset[str]]],
+    snapshot_tiers: Sequence[tuple[str, Mapping[str, str]]],
+    cfg: Mapping[str, object],
+) -> pd.DataFrame:
+    """Ranking-churn accumulator over COMPARABLE snapshots (the assembly layer already
+    filtered on comparable_since + scorer_version). Per adjacent date-sorted pair:
+    top-K overlap share and tier_migration_share (ids present in BOTH snapshots whose
+    priority_tier changed). Publishes the medians once >= min_snapshots comparable
+    snapshots exist; below that, gate_state="insufficient_snapshots" with the honest
+    accumulator note."""
+    sec = _section(cfg, "rank_stability")
+    min_snaps = _cfg_int(sec, "min_snapshots")
+    k = _cfg_int(sec, "top_k")
+
+    tops = sorted(snapshot_tops, key=lambda t: t[0])
+    tiers = {d: m for d, m in snapshot_tiers}
+    n_snaps = len(tops)
+
+    overlaps: list[float] = []
+    migrations: list[float] = []
+    for (d1, top1), (d2, top2) in zip(tops, tops[1:]):
+        overlaps.append(len(top1 & top2) / k)
+        t1, t2 = tiers.get(d1, {}), tiers.get(d2, {})
+        common = set(t1) & set(t2)
+        if common:
+            migrations.append(sum(1 for cid in common if t1[cid] != t2[cid]) / len(common))
+
+    rows: list[dict[str, object]] = []
+    if n_snaps >= min_snaps and overlaps and migrations:
+        rows.append(
+            _row(
+                "rank_stability_overlap_at_50",
+                value=float(pd.Series(overlaps).median()),
+                n=len(overlaps),
+                ci=None,
+                gate_state="published",
+                note=_RANK_STABILITY_PUBLISHED_NOTE,
+                surface="app",
+            )
+        )
+        rows.append(
+            _row(
+                "rank_stability_tier_migration_share",
+                value=float(pd.Series(migrations).median()),
+                n=len(migrations),
+                ci=None,
+                gate_state="published",
+                note=_RANK_STABILITY_PUBLISHED_NOTE,
+                surface="app",
+            )
+        )
+    else:
+        note = _stability_gate_note(n_snaps)
+        for metric in ("rank_stability_overlap_at_50", "rank_stability_tier_migration_share"):
+            rows.append(
+                _row(
+                    metric,
+                    value=None,
+                    n=n_snaps,
+                    ci=None,
+                    gate_state="insufficient_snapshots",
+                    note=note,
+                    surface="app",
+                )
+            )
     return _frame(rows)
 
 
