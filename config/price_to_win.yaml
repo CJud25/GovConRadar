@@ -1,0 +1,52 @@
+# price_to_win.yaml — tunables for the Competitive Price Range engine
+# (src/scoring/price_to_win.py). THE one config: the app's live recompute imports
+# it too (utils.config.PRICE_TO_WIN) — the former inlined PTW_CONFIG mirror was
+# collapsed 2026-07-07; tests/test_price_to_win.py::test_app_uses_the_one_engine_and_config
+# guards against re-inlining.
+#
+# Design rule: this produces a RANGE of historical comparable WINNING award
+# run-rates, not a price-to-win. Every derived adjustment (escalation, competition)
+# is an off-by-default, disclosed toggle — never baked into the baseline range.
+
+comparable_selection:
+  min_comparables: 5        # below this -> "insufficient", refuse to emit a range
+  target_comparables: 40    # stop widening / cap stored comparables once reached
+  psc_class_len: 2          # roll 4-char PSC up to its 2-char class (599 codes too sparse)
+  naics_family_len: 4       # NAICS family = first 4 digits (industry group)
+  recency_years: 5          # prefer awards signed within N years
+  size_band: [0.25, 4.0]    # keep comparables within 0.25x-4x the incumbent run-rate
+  # award_type values that are child/definitive awards (annualizable). Parent IDV
+  # ceilings are excluded — a ceiling / ordering-period is not a price.
+  allowed_award_types: ["DELIVERY ORDER", "PURCHASE ORDER", "DEFINITIVE CONTRACT", "BPA CALL"]
+
+annualization:
+  min_pop_years: 0.25       # ~90 days; floor to avoid divide-by-tiny-term blowups
+  max_pop_years: 12.0
+
+winsorize_quantiles: [0.05, 0.95]   # clip run-rates before percentiles (heavy-tailed)
+percentiles: [25, 50, 75]
+
+bootstrap:
+  iterations: 400           # bootstrap resamples for the median CI
+  ci: 0.80                  # 80% interval on the median
+
+# Data-strength tiers (evaluated top-down; any disqualifier forces a downgrade).
+# ci_ratio = (ci_high - ci_low) / median.
+data_strength:
+  strong:   {min_n: 15, max_ci_ratio: 0.35, max_pct_in_progress: 0.50}
+  moderate: {min_n: 8,  max_ci_ratio: 0.60, max_pct_in_progress: 0.70}
+
+# FPDS extent_competed_code buckets.
+competitive_extent_codes: ["A", "D", "F"]        # full&open / after-exclusion / competed-under-SAP
+noncompetitive_extent_codes: ["B", "C", "G"]     # not available / not competed / not competed under SAP
+
+# DISCLOSED, OFF-BY-DEFAULT adjustments. Never applied to the baseline range; the
+# app exposes them as toggles and shows the delta. Magnitudes are asserted priors,
+# not measured elasticities (no losing-bid data exists) — labeled as such in the UI.
+escalation:
+  annual_rate: 0.028
+  source: "BLS ECI, Professional & Technical Services"
+competition:
+  low_offers_uplift: 0.06      # 1 offer or not-competed comparable set -> priced higher
+  high_offers_discount: 0.06   # >=5 offers or full-&-open -> priced lower
+  high_offers_threshold: 5

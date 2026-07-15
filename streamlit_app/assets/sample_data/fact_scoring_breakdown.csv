@@ -1,0 +1,113 @@
+candidate_id,score_component,weight,raw_score,weighted_score
+RC-SAMPLE-001,Capability Match,0.25,100.0,25.0
+RC-SAMPLE-001,Expiration Urgency,0.2,90.4,18.08
+RC-SAMPLE-001,Estimated Value,0.15,100.0,15.0
+RC-SAMPLE-001,Agency Fit,0.1,100.0,10.0
+RC-SAMPLE-001,Set-Aside / Competition Fit,0.1,55.0,5.5
+RC-SAMPLE-001,Recompete Confidence,0.1,100.0,10.0
+RC-SAMPLE-001,Location Fit,0.05,100.0,5.0
+RC-SAMPLE-001,Data Quality,0.05,70.0,3.5
+RC-SAMPLE-002,Capability Match,0.25,85.0,21.25
+RC-SAMPLE-002,Expiration Urgency,0.2,64.2,12.84
+RC-SAMPLE-002,Estimated Value,0.15,30.0,4.5
+RC-SAMPLE-002,Agency Fit,0.1,100.0,10.0
+RC-SAMPLE-002,Set-Aside / Competition Fit,0.1,50.0,5.0
+RC-SAMPLE-002,Recompete Confidence,0.1,100.0,10.0
+RC-SAMPLE-002,Location Fit,0.05,100.0,5.0
+RC-SAMPLE-002,Data Quality,0.05,70.0,3.5
+RC-SAMPLE-003,Capability Match,0.25,85.0,21.25
+RC-SAMPLE-003,Expiration Urgency,0.2,43.7,8.74
+RC-SAMPLE-003,Estimated Value,0.15,100.0,15.0
+RC-SAMPLE-003,Agency Fit,0.1,100.0,10.0
+RC-SAMPLE-003,Set-Aside / Competition Fit,0.1,55.0,5.5
+RC-SAMPLE-003,Recompete Confidence,0.1,100.0,10.0
+RC-SAMPLE-003,Location Fit,0.05,100.0,5.0
+RC-SAMPLE-003,Data Quality,0.05,70.0,3.5
+RC-SAMPLE-004,Capability Match,0.25,40.0,10.0
+RC-SAMPLE-004,Expiration Urgency,0.2,26.6,5.32
+RC-SAMPLE-004,Estimated Value,0.15,60.0,9.0
+RC-SAMPLE-004,Agency Fit,0.1,50.0,5.0
+RC-SAMPLE-004,Set-Aside / Competition Fit,0.1,55.0,5.5
+RC-SAMPLE-004,Recompete Confidence,0.1,100.0,10.0
+RC-SAMPLE-004,Location Fit,0.05,30.0,1.5
+RC-SAMPLE-004,Data Quality,0.05,70.0,3.5
+RC-SAMPLE-005,Capability Match,0.25,15.0,3.75
+RC-SAMPLE-005,Expiration Urgency,0.2,76.7,15.34
+RC-SAMPLE-005,Estimated Value,0.15,100.0,15.0
+RC-SAMPLE-005,Agency Fit,0.1,50.0,5.0
+RC-SAMPLE-005,Set-Aside / Competition Fit,0.1,50.0,5.0
+RC-SAMPLE-005,Recompete Confidence,0.1,100.0,10.0
+RC-SAMPLE-005,Location Fit,0.05,100.0,5.0
+RC-SAMPLE-005,Data Quality,0.05,70.0,3.5
+RC-SAMPLE-006,Capability Match,0.25,40.0,10.0
+RC-SAMPLE-006,Expiration Urgency,0.2,52.9,10.58
+RC-SAMPLE-006,Estimated Value,0.15,100.0,15.0
+RC-SAMPLE-006,Agency Fit,0.1,50.0,5.0
+RC-SAMPLE-006,Set-Aside / Competition Fit,0.1,55.0,5.5
+RC-SAMPLE-006,Recompete Confidence,0.1,100.0,10.0
+RC-SAMPLE-006,Location Fit,0.05,100.0,5.0
+RC-SAMPLE-006,Data Quality,0.05,70.0,3.5
+RC-SAMPLE-007,Capability Match,0.25,70.0,17.5
+RC-SAMPLE-007,Expiration Urgency,0.2,10.0,2.0
+RC-SAMPLE-007,Estimated Value,0.15,100.0,15.0
+RC-SAMPLE-007,Agency Fit,0.1,50.0,5.0
+RC-SAMPLE-007,Set-Aside / Competition Fit,0.1,55.0,5.5
+RC-SAMPLE-007,Recompete Confidence,0.1,100.0,10.0
+RC-SAMPLE-007,Location Fit,0.05,100.0,5.0
+RC-SAMPLE-007,Data Quality,0.05,70.0,3.5
+RC-SAMPLE-008,Capability Match,0.25,0.0,0.0
+RC-SAMPLE-008,Expiration Urgency,0.2,70.7,14.14
+RC-SAMPLE-008,Estimated Value,0.15,100.0,15.0
+RC-SAMPLE-008,Agency Fit,0.1,50.0,5.0
+RC-SAMPLE-008,Set-Aside / Competition Fit,0.1,55.0,5.5
+RC-SAMPLE-008,Recompete Confidence,0.1,100.0,10.0
+RC-SAMPLE-008,Location Fit,0.05,100.0,5.0
+RC-SAMPLE-008,Data Quality,0.05,70.0,3.5
+RC-SAMPLE-009,Capability Match,0.25,40.0,10.0
+RC-SAMPLE-009,Expiration Urgency,0.2,15.3,3.06
+RC-SAMPLE-009,Estimated Value,0.15,100.0,15.0
+RC-SAMPLE-009,Agency Fit,0.1,50.0,5.0
+RC-SAMPLE-009,Set-Aside / Competition Fit,0.1,55.0,5.5
+RC-SAMPLE-009,Recompete Confidence,0.1,100.0,10.0
+RC-SAMPLE-009,Location Fit,0.05,100.0,5.0
+RC-SAMPLE-009,Data Quality,0.05,70.0,3.5
+RC-SAMPLE-010,Capability Match,0.25,85.0,21.25
+RC-SAMPLE-010,Expiration Urgency,0.2,84.8,16.96
+RC-SAMPLE-010,Estimated Value,0.15,30.0,4.5
+RC-SAMPLE-010,Agency Fit,0.1,100.0,10.0
+RC-SAMPLE-010,Set-Aside / Competition Fit,0.1,50.0,5.0
+RC-SAMPLE-010,Recompete Confidence,0.1,82.5,8.25
+RC-SAMPLE-010,Location Fit,0.05,100.0,5.0
+RC-SAMPLE-010,Data Quality,0.05,70.0,3.5
+RC-SAMPLE-011,Capability Match,0.25,70.0,17.5
+RC-SAMPLE-011,Expiration Urgency,0.2,56.8,11.36
+RC-SAMPLE-011,Estimated Value,0.15,100.0,15.0
+RC-SAMPLE-011,Agency Fit,0.1,100.0,10.0
+RC-SAMPLE-011,Set-Aside / Competition Fit,0.1,50.0,5.0
+RC-SAMPLE-011,Recompete Confidence,0.1,100.0,10.0
+RC-SAMPLE-011,Location Fit,0.05,100.0,5.0
+RC-SAMPLE-011,Data Quality,0.05,50.0,2.5
+RC-SAMPLE-012,Capability Match,0.25,40.0,10.0
+RC-SAMPLE-012,Expiration Urgency,0.2,30.2,6.04
+RC-SAMPLE-012,Estimated Value,0.15,100.0,15.0
+RC-SAMPLE-012,Agency Fit,0.1,50.0,5.0
+RC-SAMPLE-012,Set-Aside / Competition Fit,0.1,55.0,5.5
+RC-SAMPLE-012,Recompete Confidence,0.1,82.5,8.25
+RC-SAMPLE-012,Location Fit,0.05,100.0,5.0
+RC-SAMPLE-012,Data Quality,0.05,70.0,3.5
+RC-SAMPLE-013,Capability Match,0.25,40.0,10.0
+RC-SAMPLE-013,Expiration Urgency,0.2,0.0,0.0
+RC-SAMPLE-013,Estimated Value,0.15,100.0,15.0
+RC-SAMPLE-013,Agency Fit,0.1,50.0,5.0
+RC-SAMPLE-013,Set-Aside / Competition Fit,0.1,50.0,5.0
+RC-SAMPLE-013,Recompete Confidence,0.1,32.5,3.25
+RC-SAMPLE-013,Location Fit,0.05,100.0,5.0
+RC-SAMPLE-013,Data Quality,0.05,55.0,2.75
+RC-SAMPLE-014,Capability Match,0.25,40.0,10.0
+RC-SAMPLE-014,Expiration Urgency,0.2,49.1,9.82
+RC-SAMPLE-014,Estimated Value,0.15,60.0,9.0
+RC-SAMPLE-014,Agency Fit,0.1,100.0,10.0
+RC-SAMPLE-014,Set-Aside / Competition Fit,0.1,55.0,5.5
+RC-SAMPLE-014,Recompete Confidence,0.1,100.0,10.0
+RC-SAMPLE-014,Location Fit,0.05,100.0,5.0
+RC-SAMPLE-014,Data Quality,0.05,70.0,3.5

@@ -1,0 +1,26 @@
+# recompete.yaml — expiration-truth policy for the recompete radar.
+#
+# A candidate carries THREE dates, each an honest, distinct signal:
+#   * current_end_date   — base period + exercised options (the nearer, "committed" end)
+#   * potential_end_date — base period + ALL options       (the latest possible end)
+#   * estimated_recompete_window_{start,end} — a derived ESTIMATE, never official
+#
+# expiration_basis_policy chooses WHICH date drives days_until_expiration / expiration_bucket.
+# The chosen date is recorded per-row in `expiration_date_basis` so every urgency number
+# decomposes to a stated basis (product rule: every number is auditable).
+#
+#   potential — prefer potential_end_date, else current_end_date   (base + all options)
+#   current   — prefer current_end_date,  else potential_end_date  (base + exercised options)
+#   earliest  — the earliest available of the two (soonest a recompete could surface)
+#
+# Default is `potential` (the historical, byte-identical behavior). The *view* — not this
+# policy — is what defaults to the trustworthy, forward-dated subset (see default_pipeline_view,
+# §3.3). Switch to `earliest` for the most conservative urgency signal.
+expiration_basis_policy: potential
+
+# ─── Successor-visible proxy (B1, scoring.successor_proxy) ─────────────────────
+# ptw_backtest's predecessor→successor predicate applied FORWARD: for a recently-lapsed
+# candidate, is a same-cell (NAICS × 2-char-PSC-class × subagency) award already visible
+# that was signed after its selected_expiration_date (and NOT under the same parent IDV)?
+successor_min_cell_awards: 3      # a cell needs >= this many awards to be readable (else the label is "insufficient_cell")
+successor_signed_after_days: 0    # a successor must be signed > selected_expiration_date + this many days

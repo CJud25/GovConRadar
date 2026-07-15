@@ -1,0 +1,9 @@
+naics_code,naics_description,cyber_it_relevance_flag,cyber_it_relevance_reason
+541511,Custom Computer Programming Services,True,Unambiguously IT/cyber by NAICS definition
+541512,Computer Systems Design Services,True,Unambiguously IT/cyber by NAICS definition
+541513,Computer Facilities Management Services,True,Unambiguously IT/cyber by NAICS definition
+541519,Other Computer Related Services,True,Unambiguously IT/cyber by NAICS definition
+518210,"Computing Infrastructure Providers, Data Processing, Web Hosting, and Related Services",True,Unambiguously IT/cyber by NAICS definition
+541330,Engineering Services,False,Ambiguous NAICS — requires a cyber/IT keyword match in the award description
+541611,Administrative Management and General Management Consulting Services,False,Ambiguous NAICS — requires a cyber/IT keyword match in the award description
+541690,Other Scientific and Technical Consulting Services,False,Ambiguous NAICS — requires a cyber/IT keyword match in the award description

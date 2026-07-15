@@ -1,0 +1,11 @@
+# config/burn_pressure.yaml — ASSERTED PRIORS for the burn-pressure signal.
+# Chosen priors fitted to the observed 2026-07-07 DoD snapshot distribution,
+# NOT regression coefficients. Import-time asserts (src/utils/config.py) enforce only
+# STRUCTURAL sanity (sign / ordering / positivity), never that they are "correct".
+hot_threshold: 0.20            # burn_pressure >  +0.20  -> burning_hot (obligating >20pp ahead of the clock)
+cold_threshold: -0.20          # burn_pressure <  -0.20  -> underutilized (>20pp behind the clock)
+fully_funded_ratio: 0.98       # cbr >= 0.98  -> ~fully obligated, no burn headroom -> no band (non-informative)
+ceiling_exceeded_ratio: 1.05   # cbr >  1.05  -> obligated exceeds recorded order ceiling -> ceiling unreliable, no band
+min_planned_days: 30           # planned window < 30d  -> clock too short to read a pace -> insufficient
+max_planned_days: 10950        # planned window > 30y  -> FPDS date typo -> insufficient
+idv_award_types: [IDC, IDIQ, GWAC, FSS, BOA, BPA, IDV]   # parent-vehicle types (EXACT match; "BPA CALL" is a call, NOT a parent BPA). 0 rows today; defensive.

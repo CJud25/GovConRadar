@@ -1,0 +1,8 @@
+capture_phase,capture_phase_sort,phase_hex_color
+Early Watch,0,#6C8EBF
+Pre-RFP Shaping,1,#3E7CB1
+Capture Planning,2,#2E8B76
+Proposal Prep,3,#F2A900
+Proposal / Submit,4,#E4572E
+Expired,5,#8A8D91
+Unknown / Data Gap,9,#C9CBCF

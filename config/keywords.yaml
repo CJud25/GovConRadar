@@ -1,0 +1,79 @@
+# keywords.yaml — cyber/IT/DoD keyword taxonomy used by classification and search.
+# Three groups: cybersecurity, it_services, dod_focus. Edit here (not in code) to
+# tune classification. classification.py requires NAICS + PSC + a keyword hit
+# together for High confidence, so this list widens/narrows recall, not precision alone.
+
+cybersecurity:
+  - cybersecurity
+  - cyber security
+  - cyber
+  - information assurance
+  - IA
+  - security operations
+  - SOC
+  - security operations center
+  - incident response
+  - threat hunting
+  - vulnerability management
+  - penetration testing
+  - zero trust
+  - RMF
+  - risk management framework
+  - NIST
+  - CMMC
+  - FISMA
+  - FedRAMP
+  - continuous monitoring
+  - SIEM
+  - endpoint detection
+  - EDR
+  - identity and access management
+  - IAM
+  - privileged access
+  - cloud security
+  - network security
+  - data protection
+  - cyber defense
+  - cyber operations
+  - security compliance
+  - ATO
+  - authority to operate
+
+it_services:
+  - information technology
+  - IT support
+  - help desk
+  - service desk
+  - network operations
+  - systems administration
+  - system administrator
+  - cloud migration
+  - cloud services
+  - software development
+  - application development
+  - DevSecOps
+  - data analytics
+  - database administration
+  - enterprise architecture
+  - IT modernization
+  - infrastructure support
+  - telecom
+  - managed services
+  - data center
+  - end user support
+
+# DoD focus terms — used to keep scope on Department of Defense components.
+# NSA/USCYBERCOM only where present in public data; CISA is a civilian comparator.
+dod_focus:
+  - Department of Defense
+  - Army
+  - Navy
+  - Air Force
+  - Space Force
+  - Marine Corps
+  - DISA
+  - DLA
+  - DHA
+  - NSA
+  - USCYBERCOM
+  - CISA

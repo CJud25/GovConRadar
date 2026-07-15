@@ -1,0 +1,21 @@
+# scoring_weights.yaml — Pursuit Score (0-100) component weights and priority tiers.
+# Weights MUST sum to 1.0 (utils.config asserts this on load). Every component
+# score is stored individually in fact_scoring_breakdown for full transparency.
+# See docs/scoring_methodology.md.
+
+weights:
+  capability_match: 0.25      # NAICS/PSC/title overlap with the mock vendor
+  expiration_urgency: 0.20    # how soon the selected expiration date arrives
+  estimated_value: 0.15       # fit against the vendor's comfortable value range
+  agency_fit: 0.10            # agency matches vendor's synthetic past performance
+  set_aside_fit: 0.10         # extent_competed proxy (real set_aside is a v1 gap)
+  recompete_confidence: 0.10  # expiration-basis + classification confidence blend
+  location_fit: 0.05          # place of performance in vendor's states served
+  data_quality: 0.05          # penalizes flagged data-quality issues
+
+# (min_pursuit_score, tier_label) — evaluated top-down.
+priority_tiers:
+  - [80, "Tier 1: Pursue Now"]
+  - [65, "Tier 2: Capture Research"]
+  - [50, "Tier 3: Monitor"]
+  - [0, "Tier 4: Low Priority"]

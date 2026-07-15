@@ -1,0 +1,14 @@
+# config/mods_signal.yaml — ASSERTED PRIORS for the mods/termination signal.
+# Priors FITTED to the Phase-0 measured distributions (2026-07-12 full intake),
+# NOT regression coefficients. Import-time asserts (src/utils/config.py) enforce only
+# STRUCTURAL sanity (sign / ordering / positivity); the stronger cross-checks against the
+# fold's module constants live in scoring.mods_signal.load_mods_config (pipeline time).
+termination_codes: [E, F, X, N]      # reason-for-modification (action_type_code); K=Close Out is NOT a termination. Measured: 3,661 of 238,363 in-scope awards carry one (1.5%).
+complete_grace_days: 31              # current_end <= termination_date + this -> complete_likely (measured split: 48.7% complete / 51.3% partial_or_unclear)
+min_transactions: 2                  # <2 -> velocity/ceiling unreadable -> insufficient (46.4% of awards are single-transaction)
+ceiling_balloon_ratio: 1.50          # last/first CUMULATIVE ceiling (potential_total_value_of_award) > this -> balloon (measured: flags 6.6% of the 124,314-award ratio denominator)
+deobligation_floor_usd: -100000      # txn obligation below this (non-K, before planned end) -> deobligation (measured: 5.1% of >=2-txn awards); must be <= -10000 (fold's structural event floor)
+velocity_low: 1.0                    # mods/active-year < this -> low (measured: 10.8% of the 126,637 velocity denominator)
+velocity_high: 10.0                  # > this -> high (REFIT from draft 4.0, which flagged 41.6% — measured 17.7% above 10.0; high is a tail signal)
+bridge_min_extension_days: 30        # current_end pushed > this past the original potential_end (measured: 6.6% of >=2-txn awards flag)
+bridge_noncompeted_codes: [B, C, G]  # extent_competed_code sole-source family (the CODE, never the text; must equal the fold's constant)

@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Data-integrity + boot gate for the deployed app. This public repo ships the app,
+# its scoring/transform library (src/ + config/), and a committed data/sample —
+# CI proves the shipped sample still holds every invariant (scorer parity, no stale
+# in tiers, KPI ties, title safety, public-artifact policy) AND that the app
+# actually boots all views on it. The full snapshot is a Release asset (not in CI).
+# Least privilege: the workflow only needs to read the checked-out code.
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install runtime deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Import-walk the shipped library (every src/**/*.py)
+        run: |
+          python - <<'PY'
+          import importlib, pathlib, sys, traceback
+          sys.path.insert(0, "src")
+          failed = []
+          for p in sorted(pathlib.Path("src").rglob("*.py")):
+              mod = ".".join(p.relative_to("src").with_suffix("").parts)
+              mod = mod.removesuffix(".__init__") or mod
+              try:
+                  importlib.import_module(mod)
+              except Exception:
+                  failed.append(mod); traceback.print_exc()
+          print(f"import-walk: {len(failed)} failures")
+          sys.exit(1 if failed else 0)
+          PY
+      - name: Validate data contract (sample bundle)
+        run: python scripts/validate_data.py --sample
+      - name: Doc-count guard (pinned numbers vs generated values)
+        run: python scripts/check_doc_counts.py
+      - name: App boot smoke (all views, sample mode)
+        run: python scripts/smoke_app.py
+      - name: SQL query pack (DuckDB, over the shipped sample)
+        run: |
+          python run_sql.py sql/01_recompete_expiring_next_12mo_by_naics.sql
+          python run_sql.py sql/04_competitive_price_range_by_psc.sql
+      - name: ETL mini-pipeline (offline, synthetic)
+        run: python pipeline_demo/run_all.py --offline
+      - name: Dependency audit (advisory — an upstream CVE must not redden the data-integrity badge)
+        continue-on-error: true
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt -r requirements-dev.txt
+      - name: Secret scan (gitleaks, blocking)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

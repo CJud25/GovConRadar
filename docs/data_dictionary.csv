@@ -1,0 +1,14 @@
+table,field,description,data_type,is_estimate
+fact_recompete_candidates,candidate_id,Synthetic ID: RC- prefix + source award ID,string,False
+fact_recompete_candidates,selected_expiration_date,"current_end_date if potential_end_date is null, else potential_end_date",date,False
+fact_recompete_candidates,expiration_date_basis,Which date was used: current_end_date / potential_end_date / unknown,string,False
+fact_recompete_candidates,estimated_recompete_window_start,ESTIMATE — not an official government date. See scoring_methodology.md,date,True
+fact_recompete_candidates,estimated_recompete_window_end,ESTIMATE — not an official government date. See scoring_methodology.md,date,True
+fact_recompete_candidates,pursuit_score,"ESTIMATE — weighted composite of 8 component scores, 0-100",float,True
+fact_recompete_candidates,priority_tier,ESTIMATE — derived from pursuit_score thresholds,string,True
+fact_contract_awards,naics,NAICS code as reported by USAspending,string,False
+fact_contract_awards,psc,Product/Service Code as reported by USAspending,string,False
+fact_contract_awards,classification_confidence,ESTIMATE — High/Medium/Low/Not Classified rules-based classification,string,True
+dim_vendor,incumbent_vulnerability_score,"ESTIMATE — derived from public signals only (short PoP, unknown follow-on)",float,True
+internal_only,VENDOR_PROFILE_SYNTHETIC,SYNTHETIC — the pursuing vendor profile used by scoring.py is entirely fictional (see config.py). It is never exported to any Tableau CSV; it only informs pursuit_score/priority_tier calculations.,n/a,True
+bridge_award_opportunity_links,link_confidence,ESTIMATE — fuzzy-match confidence; 'No Match' for all rows until SAM.gov data is pulled locally,string,True

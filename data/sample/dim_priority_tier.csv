@@ -1,0 +1,6 @@
+priority_tier,tier_short,tier_sort_order,tier_hex_color
+Tier 1: Pursue Now,Pursue Now,1,#E4572E
+Tier 2: Capture Research,Capture Research,2,#F2A900
+Tier 3: Monitor,Monitor,3,#3E7CB1
+Tier 4: Low Priority,Low Priority,4,#8A8D91
+Data Gap,Data Gap,5,#C9CBCF

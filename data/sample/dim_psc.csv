@@ -1,0 +1,282 @@
+psc_code,psc_description,psc_group,cyber_it_relevance_flag,cyber_it_relevance_reason,verification_status,psc_manual_vintage
+D302,IT AND TELECOM- SYSTEMS DEVELOPMENT,IT and Telecom,True,Core software/systems development PSC,verified_against_manual,
+D307,IT AND TELECOM- IT STRATEGY AND ARCHITECTURE,IT and Telecom,True,IT architecture/consulting PSC,verified_against_manual,
+D310,IT AND TELECOM- CYBER SECURITY AND DATA BACKUP,IT and Telecom,True,Data services PSC,needs_manual_verification,
+D316,IT AND TELECOM- TELECOMMUNICATIONS NETWORK MANAGEMENT,IT and Telecom,True,Network operations PSC,verified_against_manual,
+D317,IT AND TELECOM- WEB-BASED SUBSCRIPTION,IT and Telecom,True,Software programming PSC,verified_against_manual,
+D399,IT AND TELECOM- OTHER IT AND TELECOMMUNICATIONS,IT and Telecom,True,Catch-all IT/telecom PSC used broadly by DoD IT contracts,verified_against_manual,
+DA01,IT AND TELECOM - BUSINESS APPLICATION/APPLICATION DEVELOPMENT SUPPORT SERVICES (LABOR),IT and Telecom,True,National-security-flagged IT PSC,needs_manual_verification,
+DF01,IT AND TELECOM - IT MANAGEMENT SUPPORT SERVICES (LABOR),IT and Telecom,True,Explicit cybersecurity PSC,verified_against_manual,
+DH01,"IT AND TELECOM - PLATFORM SUPPORT SERVICES: DATABASE, MAINFRAME, MIDDLEWARE (LABOR)",IT and Telecom,True,Cloud services PSC,needs_manual_verification,
+R425,SUPPORT- PROFESSIONAL: ENGINEERING/TECHNICAL,Professional/Support Services,False,Broad engineering PSC — only cyber/IT-relevant with a keyword match,needs_manual_verification,
+R408,SUPPORT- PROFESSIONAL: PROGRAM MANAGEMENT/SUPPORT,Professional/Support Services,False,Broad program-management PSC — only cyber/IT-relevant with a keyword match,needs_manual_verification,
+1095,MISCELLANEOUS WEAPONS,Weapons & Ammunition,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+1325,BOMBS,Weapons & Ammunition,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+1367,"TACTICAL SETS, KITS, AND OUTFITS",Weapons & Ammunition,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+1550,UNMANNED AIRCRAFT,Sustainment S&E,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+1680,MISCELLANEOUS AIRCRAFT ACCESSORIES AND COMPONENTS,Sustainment S&E,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+1904,SUBMARINES,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+2350,"COMBAT, ASSAULT, AND TACTICAL VEHICLES, TRACKED","Aircraft, Ships/Submarines & Land Vehicles",False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+3610,"PRINTING, DUPLICATING, AND BOOKBINDING EQUIPMENT",Industrial Products & Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+3695,MISCELLANEOUS SPECIAL INDUSTRY MACHINERY,Industrial Products & Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5340,"HARDWARE, COMMERCIAL",Industrial Products & Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5805,TELEPHONE AND TELEGRAPH EQUIPMENT,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5810,COMMUNICATIONS SECURITY EQUIPMENT AND COMPONENTS,Security and Protection,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5820,"RADIO AND TELEVISION COMMUNICATION EQUIPMENT, EXCEPT AIRBORNE",Security and Protection,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5821,"RADIO AND TELEVISION COMMUNICATION EQUIPMENT, AIRBORNE",Security and Protection,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5825,"RADIO NAVIGATION EQUIPMENT, EXCEPT AIRBORNE",Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5826,"RADIO NAVIGATION EQUIPMENT, AIRBORNE",Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5830,"INTERCOMMUNICATION AND PUBLIC ADDRESS SYSTEMS, EXCEPT AIRBORNE",Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5836,VIDEO RECORDING AND REPRODUCING EQUIPMENT,Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5840,"RADAR EQUIPMENT, EXCEPT AIRBORNE",Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5841,"RADAR EQUIPMENT, AIRBORNE",Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5845,UNDERWATER SOUND EQUIPMENT,Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5850,VISIBLE AND INVISIBLE LIGHT COMMUNICATION EQUIPMENT,Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5865,"ELECTRONIC COUNTERMEASURES, COUNTER-COUNTERMEASURES AND QUICK REACTION CAPABILITY EQUIPMENT",Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5895,MISCELLANEOUS COMMUNICATION EQUIPMENT,Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5910,CAPACITORS,Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5930,SWITCHES,Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5962,"MICROCIRCUITS, ELECTRONIC",Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5963,ELECTRONIC MODULES,Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5965,"HEADSETS, HANDSETS, MICROPHONES AND SPEAKERS",Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5985,"ANTENNAS, WAVEGUIDES, AND RELATED EQUIPMENT",Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5995,"CABLE, CORD, AND WIRE ASSEMBLIES: COMMUNICATION EQUIPMENT",Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5996,AMPLIFIERS,Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5998,"ELECTRICAL AND ELECTRONIC ASSEMBLIES, BOARDS, CARDS, AND ASSOCIATED HARDWARE",Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+5999,MISCELLANEOUS ELECTRICAL AND ELECTRONIC COMPONENTS,Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+6130,"CONVERTERS, ELECTRICAL, NONROTATING",Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+6145,"WIRE AND CABLE, ELECTRICAL",Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+6150,MISCELLANEOUS ELECTRIC POWER AND DISTRIBUTION EQUIPMENT,Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+6340,AIRCRAFT ALARM AND SIGNAL SYSTEMS,Electronic & Communication Equipment,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+6350,"MISCELLANEOUS ALARM, SIGNAL, AND SECURITY DETECTION SYSTEMS",Security and Protection,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+6605,NAVIGATIONAL INSTRUMENTS,Industrial Products & Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+6625,ELECTRICAL AND ELECTRONIC PROPERTIES MEASURING AND TESTING INSTRUMENTS,Industrial Products & Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+6760,PHOTOGRAPHIC EQUIPMENT AND ACCESSORIES,Miscellaneous S&E,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+6910,TRAINING AIDS,Sustainment S&E,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+6930,OPERATION TRAINING DEVICES,Sustainment S&E,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7010,INFORMATION TECHNOLOGY EQUIPMENT SYSTEM CONFIGURATION,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7020,"INFORMATION TECHNOLOGY CENTRAL PROCESSING UNIT (CPU, COMPUTER), ANALOG",,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7021,"INFORMATION TECHNOLOGY CENTRAL PROCESSING UNIT (CPU, COMPUTER), DIGITAL",,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7022,"INFORMATION TECHNOLOGY CENTRAL PROCESSING UNIT (CPU, COMPUTER), HYBRID",,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7025,INFORMATION TECHNOLOGY INPUT/OUTPUT AND STORAGE DEVICES,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7030,INFORMATION TECHNOLOGY SOFTWARE,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7035,INFORMATION TECHNOLOGY SUPPORT EQUIPMENT,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7045,INFORMATION TECHNOLOGY SUPPLIES,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7050,INFORMATION TECHNOLOGY COMPONENTS,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7320,KITCHEN EQUIPMENT AND APPLIANCES,Office Management,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7435,OFFICE INFORMATION SYSTEM EQUIPMENT,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7490,MISCELLANEOUS OFFICE MACHINES,Office Management,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7520,OFFICE DEVICES AND ACCESSORIES,Office Management,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7630,NEWSPAPERS AND PERIODICALS,Miscellaneous S&E,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7690,MISCELLANEOUS PRINTED MATTER,Miscellaneous S&E,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7A20,IT AND TELECOM - APPLICATION DEVELOPMENT SOFTWARE (PERPETUAL LICENSE SOFTWARE),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7A21,IT AND TELECOM - BUSINESS APPLICATION SOFTWARE (PERPETUAL LICENSE SOFTWARE),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7B20,IT AND TELECOM - HIGH PERFORMANCE COMPUTE (HARDWARE AND PERPETUAL LICENSE SOFTWARE),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7B21,IT AND TELECOM - COMPUTE: MAINFRAME (HARDWARE AND PERPETUAL LICENSE SOFTWARE),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7B22,IT AND TELECOM - COMPUTE: SERVERS (HARDWARE AND PERPETUAL LICENSE SOFTWARE),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7C20,IT AND TELECOM - DATA CENTER PRODUCTS (HARDWARE AND PERPETUAL LICENSE SOFTWARE),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7C21,IT AND TELECOM - OTHER DATA CENTER FACILITIES PRODUCTS (HARDWARE AND PERPETUAL LICENSE SOFTWARE),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7D20,IT AND TELECOM - SERVICE DELIVERY MANAGEMENT (HARDWARE AND PERPETUAL LICENSE SOFTWARE),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7E20,"IT and Telecom - End User: Help Desk;Tier 1-2,Workspace,Print,Output,Productivity Tools (HW/Perp SW)",IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7E21,IT AND TELECOM - MOBILE DEVICE PRODUCTS (HARDWARE AND PERPETUAL LICENSE SOFTWARE),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7F20,IT AND TELECOM - IT MANAGEMENT TOOLS/PRODUCTS (HARDWARE AND PERPETUAL LICENSE SOFTWARE),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7G20,IT AND TELECOM - NETWORK: ANALOG VOICE PRODUCTS (HARDWARE AND PERPETUAL LICENSE SOFTWARE),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7G21,IT AND TELECOM - NETWORK: DIGITAL NETWORK PRODUCTS (HARDWARE AND PERPETUAL LICENSE SOFTWARE),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7G22,"IT AND TELECOM - NETWORK: SATELLITE AND RF COMMUNICATIONS PRODUCTS (HW, PERPETUAL LICENSE SOFTWARE)",IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7H20,"IT AND TELECOM - PLATFORM PRODUCTS: DATABASE, MAINFRAME, MIDDLEWARE (HW, PERPETUAL LICENSE SOFTWARE)",IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7J20,IT AND TELECOM - SECURITY AND COMPLIANCE PRODUCTS (HARDWARE AND PERPETUAL LICENSE SOFTWARE),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+7K20,IT AND TELECOM - STORAGE PRODUCTS (HARDWARE AND PERPETUAL LICENSE SOFTWARE),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AA23,R&D- AGRICULTURE: MARKETING (ADVANCED DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AB12,COMMUNITY AND REGIONAL DEVELOPMENT R&D SERVICES; COMMUNITY DEVELOPMENT; APPLIED RESEARCH,Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC11,NATIONAL DEFENSE R&D SERVICES; DEPARTMENT OF DEFENSE - MILITARY; BASIC RESEARCH,Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC12,NATIONAL DEFENSE R&D SERVICES; DEPARTMENT OF DEFENSE - MILITARY; APPLIED RESEARCH,Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC13,NATIONAL DEFENSE R&D SERVICES; DEPARTMENT OF DEFENSE - MILITARY; EXPERIMENTAL DEVELOPMENT,Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC14,NATIONAL DEFENSE R&D SERVICES; DEPARTMENT OF DEFENSE - MILITARY; R&D ADMINISTRATIVE EXPENSES,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC15,NATIONAL DEFENSE R&D SVCS; DEPARTMENT OF DEFENSE - MILITARY; R&D FACILITIES & MAJ EQUIP,Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC16,R&D- DEFENSE SYSTEM: AIRCRAFT (MANAGEMENT/SUPPORT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC21,NATIONAL DEFENSE R&D SERVICES; ATOMIC ENERGY DEFENSE ACTIVITIES; BASIC RESEARCH,Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC22,NATIONAL DEFENSE R&D SERVICES; ATOMIC ENERGY DEFENSE ACTIVITIES; APPLIED RESEARCH,Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC23,NATIONAL DEFENSE R&D SERVICES; ATOMIC ENERGY DEFENSE ACTIVITIES; EXPERIMENTAL DEVELOPMENT,Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC24,NATIONAL DEFENSE R&D SERVICES; ATOMIC ENERGY DEFENSE ACTIVITIES; R&D ADMINISTRATIVE EXPENSES,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC25,NATIONAL DEFENSE R&D SVCS; ATOMIC ENERGY DEFENSE ACTIVITIES; R&D FACILITIES & MAJ EQUIP,Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC31,NATIONAL DEFENSE R&D SERVICES; DEFENSE-RELATED ACTIVITIES; BASIC RESEARCH,Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC32,NATIONAL DEFENSE R&D SERVICES; DEFENSE-RELATED ACTIVITIES; APPLIED RESEARCH,Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC33,NATIONAL DEFENSE R&D SERVICES; DEFENSE-RELATED ACTIVITIES; EXPERIMENTAL DEVELOPMENT,Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC51,R&D- DEFENSE SYSTEM: WEAPONS (BASIC RESEARCH),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC53,R&D- DEFENSE SYSTEM: WEAPONS (ADVANCED DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC57,R&D- DEFENSE SYSTEM: WEAPONS (COMMERCIALIZED),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC61,R&D- DEFENSE SYSTEM: ELECTRONICS/COMMUNICATION EQUIPMENT (BASIC RESEARCH),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC63,R&D- DEFENSE SYSTEM: ELECTRONICS/COMMUNICATION EQUIPMENT (ADVANCED DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC64,R&D- DEFENSE SYSTEM: ELECTRONICS/COMMUNICATION EQUIPMENT (ENGINEERING DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC65,R&D- DEFENSE SYSTEM: ELECTRONICS/COMMUNICATION EQUIPMENT (OPERATIONAL SYSTEMS DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC66,R&D- DEFENSE SYSTEM: ELECTRONICS/COMMUNICATION EQUIPMENT (MANAGEMENT/SUPPORT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AC67,R&D- DEFENSE SYSTEM: ELECTRONICS/COMMUNICATION EQUIPMENT (COMMERCIALIZED),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AD21,R&D- DEFENSE OTHER: SERVICES (BASIC RESEARCH),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AD22,R&D- DEFENSE OTHER: SERVICES (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AD23,R&D- DEFENSE OTHER: SERVICES (ADVANCED DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AD24,R&D- DEFENSE OTHER: SERVICES (ENGINEERING DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AD25,R&D- DEFENSE OTHER: SERVICES (OPERATIONAL SYSTEMS DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AD92,R&D- DEFENSE OTHER: OTHER (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AD93,R&D- DEFENSE OTHER: OTHER (ADVANCED DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AD94,R&D- DEFENSE OTHER: OTHER (ENGINEERING DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AD95,R&D- DEFENSE OTHER: OTHER (OPERATIONAL SYSTEMS DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AD96,R&D- DEFENSE OTHER: OTHER (MANAGEMENT/SUPPORT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AD97,R&D- DEFENSE OTHER: OTHER (COMMERCIALIZED),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AE33,R&D- ECONOMIC GROWTH: MANUFACTURING TECHNOLOGY (ADVANCED DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AE35,R&D- ECONOMIC GROWTH: MANUFACTURING TECHNOLOGY (OPERATIONAL SYSTEMS DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AF15,"EDUCATION, TRAINING, EMPLOYMENT, & SOCIAL SVCS R&D SVCS; EDUC SVCS R&D; R&D FACILITIES & MAJ EQUIP",Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AG92,R&D- ENERGY: OTHER (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AJ11,GENERAL SCIENCE AND TECHNOLOGY R&D SERVICES; GENERAL SCIENCE AND TECHNOLOGY; BASIC RESEARCH,Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AJ12,GENERAL SCIENCE AND TECHNOLOGY R&D SERVICES; GENERAL SCIENCE AND TECHNOLOGY; APPLIED RESEARCH,Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AJ13,GENERAL SCIENCE & TECHNOLOGY R&D SVCS; GENERAL SCIENCE & TECHNOLOGY; EXPERIMENTAL DEVELOPMENT,Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AJ41,R&D- GENERAL SCIENCE/TECHNOLOGY: ENGINEERING (BASIC RESEARCH),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AJ45,R&D- GENERAL SCIENCE/TECHNOLOGY: ENGINEERING (OPERATIONAL SYSTEMS DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AN77,R&D- MEDICAL: SPECIALIZED MEDICAL SERVICES (COMMERCIALIZED),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AN91,R&D- MEDICAL: OTHER (BASIC RESEARCH),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AN95,R&D- MEDICAL: OTHER (OPERATIONAL SYSTEMS DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AR12,"SPACE R&D SERVICES; SPACE FLIGHT, RESEARCH AND SUPPORTING ACTIVITIES; APPLIED RESEARCH",Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AS15,"TRANSPORTATION R&D SVCS; SURFACE TRANSPORTATION, PUBLIC TRANSIT, & RAIL; R&D FACILITIES & MAJ EQUIP",Research and Development,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AZ12,R&D- OTHER RESEARCH AND DEVELOPMENT (APPLIED RESEARCH/EXPLORATORY DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AZ13,R&D- OTHER RESEARCH AND DEVELOPMENT (ADVANCED DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AZ14,R&D- OTHER RESEARCH AND DEVELOPMENT (ENGINEERING DEVELOPMENT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AZ16,R&D- OTHER RESEARCH AND DEVELOPMENT (MANAGEMENT/SUPPORT),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+AZ17,R&D- OTHER RESEARCH AND DEVELOPMENT (COMMERCIALIZED),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+B506,SPECIAL STUDIES/ANALYSIS- DATA (OTHER THAN SCIENTIFIC),Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+B507,SPECIAL STUDIES/ANALYSIS- ECONOMIC,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+B541,SPECIAL STUDIES/ANALYSIS- DEFENSE,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+B543,SPECIAL STUDIES/ANALYSIS- ENERGY,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+B544,SPECIAL STUDIES/ANALYSIS- TECHNOLOGY,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+B554,SPECIAL STUDIES/ANALYSIS- ACQUISITION POLICY/PROCEDURES,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+B599,SPECIAL STUDIES/ANALYSIS- OTHER,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+C219,ARCHITECT AND ENGINEERING- GENERAL: OTHER,Facilities & Construction,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D301,IT AND TELECOM- FACILITY OPERATION AND MAINTENANCE,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D303,IT AND TELECOM- DATA ENTRY,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D304,IT AND TELECOM- TELECOMMUNICATIONS AND TRANSMISSION,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D305,"IT AND TELECOM – TELEPROCESSING, TIMESHARE, CLOUD COMPUTING, AND HIGH PERFORMANCE COMPUTING",,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D306,IT AND TELECOM- SYSTEMS ANALYSIS,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D308,IT AND TELECOM- PROGRAMMING,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D309,IT AND TELECOM- INFORMATION AND DATA BROADCASTING OR DATA DISTRIBUTION,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D311,IT AND TELECOM- DATA CONVERSION,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D312,IT AND TELECOM- OPTICAL SCANNING,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D313,IT AND TELECOM- COMPUTER AIDED DESIGN/COMPUTER AIDED MANUFACTURING (CAD/CAM),,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D314,IT AND TELECOM- SYSTEM ACQUISITION SUPPORT,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D315,IT AND TELECOM- DIGITIZING,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D318,"IT AND TELECOM- INTEGRATED HARDWARE/SOFTWARE/SERVICES SOLUTIONS, PREDOMINANTLY SERVICES",,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D319,IT AND TELECOM- ANNUAL SOFTWARE MAINTENANCE SERVICE PLANS,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D320,IT AND TELECOM- ANNUAL HARDWARE MAINTENANCE SERVICE PLANS,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D321,IT AND TELECOM- HELP DESK,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D322,IT AND TELECOM- INTERNET,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D324,IT AND TELECOM- BUSINESS CONTINUITY,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+D325,IT AND TELECOM- DATA CENTERS AND STORAGE,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DA10,IT AND TELECOM - BUSINESS APPLICATION/APPLICATION DEVELOPMENT SOFTWARE AS A SERVICE,IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DB01,IT AND TELECOM - HIGH PERFORMANCE COMPUTING (HPC) SUPPORT SERVICES (LABOR),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DB02,"IT AND TELECOM - COMPUTE SUPPORT SERVICES, NON-HPC (LABOR)",IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DB10,IT AND TELECOM - COMPUTE AS A SERVICE: MAINFRAME/SERVERS,IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DC01,IT AND TELECOM - DATA CENTER SUPPORT SERVICES (LABOR),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DC10,IT AND TELECOM - DATA CENTER AS A SERVICE,IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DD01,"IT AND TELECOM - SERVICE DELIVERY SUPPORT SERVICES: ITSM, OPERATIONS CENTER, PROJECT/PM (LABOR)",IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DE01,"IT and Telecom - End User: Help Desk; Tier 1-2, Workspace, Print, Output, Productivity Tools (Labor)",IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DE10,"IT and Telecom - End User as a Service: Help Desk;Tier 1-2,Workspace,Print,Output,Productivity Tools",IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DF10,IT AND TELECOM - IT MANAGEMENT AS A SERVICE,IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DG01,IT AND TELECOM - NETWORK SUPPORT SERVICES (LABOR),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DG10,IT AND TELECOM - NETWORK AS A SERVICE,IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DG11,IT and Telecom - Network: Satellite Communications and Telecom Access Services,IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DH10,"IT AND TELECOM - PLATFORM AS A SERVICE: DATABASE, MAINFRAME, MIDDLEWARE",IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DJ01,IT AND TELECOM - SECURITY AND COMPLIANCE SUPPORT SERVICES (LABOR),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DJ10,IT AND TELECOM - SECURITY AND COMPLIANCE AS A SERVICE,IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DK01,IT AND TELECOM - STORAGE SUPPORT SERVICES (LABOR),IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+DK10,IT AND TELECOM - STORAGE AS A SERVICE,IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+F115,ENVIRONMENTAL SYSTEMS PROTECTION- ENVIRONMENTAL CONSULTING AND LEGAL SUPPORT,Facilities & Construction,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+H166,QUALITY CONTROL- INSTRUMENTS AND LABORATORY EQUIPMENT,Equipment Related Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+H260,"EQUIPMENT AND MATERIALS TESTING- FIBER OPTICS MATERIALS, COMPONENTS, ASSEMBLIES, AND ACCESSORIES",Electronic & Communication Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+H270,EQUIPMENT AND MATERIALS TESTING- ADP EQUIPMENT/SOFTWARE/SUPPLIES/SUPPORT EQUIPMENT,Electronic & Communication Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+H910,OTHER QC/TEST/INSPECT- WEAPONS,Equipment Related Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+J016,MAINT/REPAIR/REBUILD OF EQUIPMENT- AIRCRAFT COMPONENTS AND ACCESSORIES,Equipment Related Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+J052,MAINT/REPAIR/REBUILD OF EQUIPMENT- MEASURING TOOLS,Industrial Products & Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+J058,"MAINT/REPAIR/REBUILD OF EQUIPMENT- COMMUNICATION, DETECTION, AND COHERENT RADIATION EQUIPMENT",,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+J059,MAINT/REPAIR/REBUILD OF EQUIPMENT- ELECTRICAL AND ELECTRONIC EQUIPMENT COMPONENTS,Facilities & Construction,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+J061,MAINT/REPAIR/REBUILD OF EQUIPMENT- ELECTRIC WIRE AND POWER DISTRIBUTION EQUIPMENT,Electronic & Communication Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+J063,"MAINT/REPAIR/REBUILD OF EQUIPMENT- ALARM, SIGNAL, AND SECURITY DETECTION SYSTEMS",Security and Protection,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+J065,"MAINT/REPAIR/REBUILD OF EQUIPMENT- MEDICAL, DENTAL, AND VETERINARY EQUIPMENT AND SUPPLIES",Medical,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+J069,MAINT/REPAIR/REBUILD OF EQUIPMENT- TRAINING AIDS AND DEVICES,Equipment Related Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+J070,MAINT/REPAIR/REBUILD OF EQUIPMENT- ADP EQUIPMENT/SOFTWARE/SUPPLIES/SUPPORT EQUIPMENT,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+J075,MAINT/REPAIR/REBUILD OF EQUIPMENT- OFFICE SUPPLIES AND DEVICES,Office Management,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+J099,MAINT/REPAIR/REBUILD OF EQUIPMENT- MISCELLANEOUS,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+J998,NON-NUCLEAR SHIP REPAIR (EAST),Equipment Related Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+K015,MODIFICATION OF EQUIPMENT- AIRCRAFT AND AIRFRAME STRUCTURAL COMPONENTS,Equipment Related Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+K016,MODIFICATION OF EQUIPMENT- AIRCRAFT COMPONENTS AND ACCESSORIES,Equipment Related Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+K020,MODIFICATION OF EQUIPMENT- SHIP AND MARINE EQUIPMENT,Equipment Related Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+K058,"MODIFICATION OF EQUIPMENT- COMMUNICATION, DETECTION, AND COHERENT RADIATION EQUIPMENT",Electronic & Communication Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+K069,MODIFICATION OF EQUIPMENT- TRAINING AIDS AND DEVICES,Equipment Related Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+K070,MODIFICATION OF EQUIPMENT- ADP EQUIPMENT/SOFTWARE/SUPPLIES/SUPPORT EQUIPMENT,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+L016,TECHNICAL REPRESENTATIVE- AIRCRAFT COMPONENTS AND ACCESSORIES,Equipment Related Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+L059,TECHNICAL REPRESENTATIVE- ELECTRICAL AND ELECTRONIC EQUIPMENT COMPONENTS,Electronic & Communication Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+L069,TECHNICAL REPRESENTATIVE- TRAINING AIDS AND DEVICES,Equipment Related Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+L070,TECHNICAL REPRESENTATIVE- ADP EQUIPMENT/SOFTWARE/SUPPLIES/SUPPORT EQUIPMENT,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+L099,TECHNICAL REPRESENTATIVE- MISCELLANEOUS,Equipment Related Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+M1AZ,OPERATION OF OTHER ADMINISTRATIVE FACILITIES AND SERVICE BUILDINGS,Facilities & Construction,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+M1BG,OPERATION OF ELECTRONIC AND COMMUNICATIONS FACILITIES,Facilities & Construction,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+M1CZ,OPERATION OF OTHER EDUCATIONAL BUILDINGS,Facilities & Construction,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+N030,INSTALLATION OF EQUIPMENT- MECHANICAL POWER TRANSMISSION EQUIPMENT,Industrial Products & Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+N054,INSTALLATION OF EQUIPMENT- PREFABRICATED STRUCTURES AND SCAFFOLDING,Industrial Products & Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+N056,INSTALLATION OF EQUIPMENT- CONSTRUCTION AND BUILDING MATERIALS,Facilities & Construction,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+N059,INSTALLATION OF EQUIPMENT- ELECTRICAL AND ELECTRONIC EQUIPMENT COMPONENTS,Facilities & Construction,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+N063,"INSTALLATION OF EQUIPMENT- ALARM, SIGNAL, AND SECURITY DETECTION SYSTEMS",Security and Protection,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+N070,INSTALLATION OF EQUIPMENT- ADP EQUIPMENT/SOFTWARE/SUPPLIES/SUPPORT EQUIPMENT,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+N099,INSTALLATION OF EQUIPMENT- MISCELLANEOUS,Equipment Related Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+P100,SALVAGE- PREPARATION AND DISPOSAL OF EXCESS/SURPLUS PROPERTY,Equipment Related Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+Q201,MEDICAL- MANAGED HEALTHCARE,Medical,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+Q503,MEDICAL- DENTISTRY,Medical,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+Q602,MEDICAL RECORDS,Medical,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+Q702,TECHNICAL MEDICAL SUPPORT,Medical,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+Q802,CLERICAL MEDICAL SUPPORT,Medical,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+Q999,MEDICAL- OTHER,Medical,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R405,SUPPORT- PROFESSIONAL: OPERATIONS RESEARCH/QUANTITATIVE ANALYSIS,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R406,SUPPORT- PROFESSIONAL: POLICY REVIEW/DEVELOPMENT,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R410,SUPPORT- PROFESSIONAL: PROGRAM EVALUATION/REVIEW/DEVELOPMENT,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R412,SUPPORT- PROFESSIONAL: SIMULATION,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R413,SUPPORT- PROFESSIONAL: SPECIFICATIONS DEVELOPMENT,IT,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R414,SYSTEMS ENGINEERING SERVICES,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R415,SUPPORT- PROFESSIONAL: TECHNOLOGY SHARING/UTILIZATION,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R421,TECHNICAL ASSISTANCE,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R423,SUPPORT- PROFESSIONAL: INTELLIGENCE,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R426,SUPPORT- PROFESSIONAL: COMMUNICATIONS,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R429,SUPPORT- PROFESSIONAL: EMERGENCY RESPONSE/DISASTER PLANNING/PREPAREDNESS SUPPORT,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R430,SUPPORT- PROFESSIONAL: PHYSICAL SECURITY AND BADGING,Security and Protection,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R431,SUPPORT- PROFESSIONAL: HUMAN RESOURCES,Human Capital,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R497,SUPPORT- PROFESSIONAL: PERSONAL SERVICES CONTRACTS,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R498,SUPPORT- PROFESSIONAL: PATENT AND TRADEMARK,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R499,SUPPORT- PROFESSIONAL: OTHER,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R605,SUPPORT- ADMINISTRATIVE: LIBRARY,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R607,SUPPORT- ADMINISTRATIVE: WORD PROCESSING/TYPING,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R612,SUPPORT- ADMINISTRATIVE: INFORMATION RETRIEVAL,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R616,SUPPORT – ADMINISTRATIVE: PHYSICAL RECORDS MANAGEMENT SERVICES,Office Management,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R617,SUPPORT – ADMINISTRATIVE: ELECTRONIC RECORDS MANAGEMENT SERVICES,Office Management,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R699,SUPPORT- ADMINISTRATIVE: OTHER,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R701,SUPPORT- MANAGEMENT: ADVERTISING,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R702,SUPPORT- MANAGEMENT: DATA COLLECTION,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R703,SUPPORT- MANAGEMENT: ACCOUNTING,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R704,SUPPORT- MANAGEMENT: AUDITING,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R706,SUPPORT- MANAGEMENT: LOGISTICS SUPPORT,Transportation and Logistics Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R707,SUPPORT- MANAGEMENT: CONTRACT/PROCUREMENT/ACQUISITION SUPPORT,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R710,SUPPORT- MANAGEMENT: FINANCIAL,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+R799,SUPPORT- MANAGEMENT: OTHER,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+S201,HOUSEKEEPING- CUSTODIAL JANITORIAL,Facilities & Construction,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+S216,HOUSEKEEPING- FACILITIES OPERATIONS SUPPORT,Facilities & Construction,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+T002,PHOTO/MAP/PRINT/PUBLICATION- CARTOGRAPHY,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+T013,PHOTO/MAP/PRINT/PUBLICATION- TECHNICAL WRITING,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+T016,PHOTO/MAP/PRINT/PUBLICATION- AUDIO/VISUAL,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+T099,PHOTO/MAP/PRINT/PUBLICATION- OTHER,Professional Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+U002,EDUCATION/TRAINING- PERSONNEL TESTING,Human Capital,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+U006,EDUCATION/TRAINING- VOCATIONAL/TECHNICAL,Human Capital,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+U008,EDUCATION/TRAINING- TRAINING/CURRICULUM DEVELOPMENT,Human Capital,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+U009,EDUCATION/TRAINING- GENERAL,Human Capital,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+U012,EDUCATION/TRAINING- INFORMATION TECHNOLOGY/TELECOMMUNICATIONS TRAINING,Human Capital,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+U013,EDUCATION/TRAINING- COMBAT,Human Capital,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+U099,EDUCATION/TRAINING- OTHER,Human Capital,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+V301,TRANSPORTATION/TRAVEL/RELOCATION- RELOCATION: RELOCATION,Transportation and Logistics Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+W059,LEASE OR RENTAL OF EQUIPMENT- ELECTRICAL AND ELECTRONIC EQUIPMENT COMPONENTS,Electronic & Communication Services,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+W070,LEASE OR RENTAL OF EQUIPMENT- INFORMATION TECHNOLOGY/SOFTWARE/SUPPLIES/SUPPORT EQUIPMENT,,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+Y1ND,CONSTRUCTION OF SEWAGE AND WASTE FACILITIES,Facilities & Construction,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+Z1AA,MAINTENANCE OF OFFICE BUILDINGS,Facilities & Construction,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04
+Z1HB,MAINTENANCE OF GOVERNMENT-OWNED GOVERNMENT-OPERATED (GOGO) R&D FACILITIES,Facilities & Construction,False,Described from the GSA PSC manual; not in the curated cyber/IT-relevant list,described_from_manual,2025-04

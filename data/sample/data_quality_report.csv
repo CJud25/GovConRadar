@@ -1,0 +1,28 @@
+metric,value,category
+usaspending_search_records_pulled,238363,row_count
+usaspending_detail_records_hydrated,238363,row_count
+sam_gov_opportunity_records_pulled,1816,row_count
+awards_clean_row_count,238363,row_count
+cyber_it_classified_count,126581,row_count
+recompete_candidate_count,35964,row_count
+duplicate_piid_count,15686,duplicate_check
+missing_end_date_count,16416,missing_value
+missing_vendor_count,0,missing_value
+missing_agency_count,0,missing_value
+classification_confidence_not_classified,111782,confidence_distribution
+classification_confidence_low,97676,confidence_distribution
+classification_confidence_medium,27516,confidence_distribution
+classification_confidence_high,1389,confidence_distribution
+known_limitation_1,"USAspending extraction filters on last_modified_date over a configurable lookback window (default 6 years), NOT on period_of_performance_current_end_date directly — USAspending's spending_by_award endpoint has no server-side filter for PoP end dates (confirmed by API testing: an unsupported date_type value returns HTTP 500). Contracts with no obligation/modification activity within the lookback window are systematically absent from this dataset, even if still active with a future end date. This is the single largest known coverage gap in this pipeline.",source_coverage_notes
+known_limitation_2,The 'office' field specified in the original data model is not populated; its exact USAspending field name was not verified against the live API and is omitted rather than guessed. (The 'set_aside' field IS now populated — recovered from the FPDS type_of_set_aside code in the bulk export.),source_coverage_notes
+known_limitation_3,"Recompete timing windows, pursuit scores/tiers, the Competitive Price Range, and incumbent analysis are analytical estimates from public signals only, never official government predictions.",source_coverage_notes
+known_limitation_4,"SAM.gov Contract Opportunity notices ARE present (1,816 loaded via the no-key bulk CSV path) and fuzzy-matched to awards in bridge_award_opportunity_links.csv. Link coverage is intentionally low (only a small share of candidates match a live notice) because a recompete's solicitation is usually posted only months before award — so contracts expiring 6-24 months out typically have no notice yet. A linked notice is a strong early signal; its absence is no signal, never evidence a recompete isn't coming.",source_coverage_notes
+garbled_title_count,73,data_quality_flags
+code_prefix_title_count,668,data_quality_flags
+short_title_count,120,data_quality_flags
+stale_expiration_count,4044,data_quality_flags
+missing_end_date_flag_count,0,data_quality_flags
+expired_grace_count_0_90d,136,stale_age_band
+expired_stale_count_90d_1y,467,stale_age_band
+expired_stale_count_1y_5y,2193,stale_age_band
+expired_stale_count_over_5y,1384,stale_age_band

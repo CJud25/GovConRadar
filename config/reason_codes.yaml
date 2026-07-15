@@ -1,0 +1,76 @@
+# config/reason_codes.yaml — ASSERTED PRIORS for the explainability chips.
+# Editorial/structural priors over the (already-computed) component scores and raw FPDS facts,
+# NOT fitted coefficients. Glyphs are NOT here — the basis glyph (●◐○) is a fixed 3-value engine
+# constant (BASIS_GLYPHS). offers_sole_source_max is NOT here — sole-source==1 is a domain fact,
+# hardcoded as engine.SOLE_SOURCE_OFFERS. There is NO `shorts:` map — the Explorer grid label is
+# the chip `text` truncated at render (engine.grid_label), not a second string table.
+# There is NO burn chip — burn is a descriptive Obligation-pace panel, not a "reason to pursue"
+# (Corrections v2 C2.1); reason-codes is fully independent of the burn columns.
+priority:                         # signal code -> rank (lower shown first); MUST be unique and complete
+  data_gap_title: 0
+  data_gap_end_date: 1
+  data_gap_stale: 2
+  incumbent_lock: 10
+  set_aside: 15
+  urgency: 20
+  expired_grace: 22
+  capability: 40
+  value: 45
+  agency: 50
+  location: 55
+  recompete: 60
+  ptw: 70
+  idv_task_order: 75
+  data_quality: 80
+  data_gap_code_prefix: 85
+  data_gap_short_title: 86
+  empty_state: 999
+thresholds:
+  capability_strong_min: 70       # component capability_match >= this -> "Strong fit"
+  capability_partial_min: 40      # >= this and < strong -> "Partial fit"   (must be < strong)
+  urgency_near_days: 182          # 0..this days -> "within 6 months"
+  urgency_soon_days: 365          # near..this -> "within a year"           (must be >= near)
+  offers_sentinels: [117, 253]    # FPDS junk counts -> "not reported", never a real offer count
+  offers_max_plausible: 100       # offers above this -> junk -> not a lock
+  data_quality_neutral: 70        # reference: the empty-notes neutral score (detects the neutral prior)
+  max_chips_detail: 12            # Detail cap
+  max_chips_explorer: 2           # Explorer grid top-N
+templates:                        # one per (signal, basis) case; {placeholders} filled by the engine.
+  # MISSING templates are DIGIT-FREE by contract (the honesty guarantee: a missing chip never carries
+  # a fabricated number). No template `text` may start with an ASCII formula char (= + - @).
+  incumbent_lock:         "Sole bid on a competed award"
+  set_aside_restricted:   "Restricted set-aside: {code}"
+  set_aside_none:         "Full and open (set-aside coded NONE)"
+  set_aside_missing:      "Set-aside not reported (blank is not the same as full and open)"
+  urgency_near:           "Expiring within 6 months ({date}, T-{days}d)"
+  urgency_soon:           "Expiring within a year ({date}, T-{days}d)"
+  urgency_missing:        "No usable end date - runway unknown"
+  expired_grace:          "Recently expired (within 90 days) - verify on SAM.gov"
+  data_gap_stale:         "Expired more than 90 days ago - quarantined as Data Gap"
+  data_gap_end_date:      "No end date derivable - quarantined as Data Gap"
+  data_gap_title:         "Unusable source title - quarantined (raw record hidden)"
+  data_gap_code_prefix:   "Title carried an IGF code prefix - cleaned"
+  data_gap_short_title:   "Very short source title - low quality"
+  capability_strong:      "Strong fit to your capabilities ({matched})"
+  capability_partial:     "Partial capability fit ({matched})"
+  capability_missing:     "Capability fit not scored - your profile lists no NAICS, PSC, or capabilities"
+  value_in_range:         "Est. value fits your comfortable range ({value} vs {ceiling} ceiling)"
+  value_over:             "Est. value above your comfortable ceiling ({value} vs {ceiling})"
+  value_missing:          "Value fit not scored - set your comfortable contract ceiling"
+  agency_pastperf:        "Matches your listed experience at {subagency}"
+  agency_baseline:        "No past performance at {subagency} - DoD-wide baseline"
+  agency_baseline_blank:  "No matching past performance - DoD-wide baseline"
+  agency_missing:         "Past-performance fit not scored - add agencies you have worked"
+  location_in_area:       "In your service area ({state})"
+  location_out_area:      "Performed in {state} - outside your served states"
+  location_nationwide:    "You serve nationwide"
+  location_state_missing: "Place of performance not reported"
+  location_missing:       "Location fit not scored - add the states you serve"
+  recompete_conf:         "{level} classification confidence"
+  recompete_low:          "Low classification confidence - verify this is a cyber/IT recompete"
+  recompete_missing:      "Recompete not classified"
+  ptw_available:          "Price range estimable from comparable awards ({strength}, n={n})"
+  ptw_missing:            "Not enough comparable awards to price"
+  idv_task_order:         "Task order under IDV {idv} - a sequence, not itself a recompete"
+  data_quality_issue:     "Data-quality note: {note}"
+  empty_state:            "No distinguishing signals - see the full breakdown below"

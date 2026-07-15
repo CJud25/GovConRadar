@@ -1,0 +1,14 @@
+psc_code,psc_description,psc_group,cyber_it_relevance_flag,cyber_it_relevance_reason,verification_status
+D302,IT Systems Development Services,IT and Telecom,True,Core software/systems development PSC,verified_against_manual
+D307,IT Strategy and Architecture Services,IT and Telecom,True,IT architecture/consulting PSC,verified_against_manual
+D310,IT Data Entry Services,IT and Telecom,True,Data services PSC,needs_manual_verification
+D316,IT Network Management Services,IT and Telecom,True,Network operations PSC,verified_against_manual
+D317,IT Programming Services,IT and Telecom,True,Software programming PSC,verified_against_manual
+D399,Other IT and Telecommunications,IT and Telecom,True,Catch-all IT/telecom PSC used broadly by DoD IT contracts,verified_against_manual
+DA01,IT Systems Analysis Services (National Security),IT and Telecom,True,National-security-flagged IT PSC,needs_manual_verification
+DF01,IT Cyber Security and Data Backup Services,IT and Telecom,True,Explicit cybersecurity PSC,verified_against_manual
+DH01,IT Cloud Computing Services,IT and Telecom,True,Cloud services PSC,needs_manual_verification
+R425,Engineering and Technical Services,Professional/Support Services,False,Broad engineering PSC — only cyber/IT-relevant with a keyword match,needs_manual_verification
+R408,Program Management/Support Services,Professional/Support Services,False,Broad program-management PSC — only cyber/IT-relevant with a keyword match,needs_manual_verification
+1260,Fire Control Systems Equipment,Product,False,"Weapons-system PSC, not IT/cyber",verified_against_manual
+9999,Unknown (auto-added from award data),Unknown,False,Present in award data; not in the curated PSC list,unverified_auto_added

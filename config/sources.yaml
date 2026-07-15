@@ -1,0 +1,82 @@
+# sources.yaml — data sources, search scope, and NAICS taxonomy.
+# NAICS codes per US Census Bureau NAICS 2022. Split into always-relevant
+# (unambiguously IT/cyber) vs conditional (engineering/consulting — only counts
+# with a keyword match). classification.py reads these relevance rules.
+
+naics_seed:
+  "541511": Custom Computer Programming Services
+  "541512": Computer Systems Design Services
+  "541513": Computer Facilities Management Services
+  "541519": Other Computer Related Services
+  "518210": Computing Infrastructure Providers, Data Processing, Web Hosting, and Related Services
+  "541330": Engineering Services                       # only when systems/security engineering
+  "541611": Administrative Management and General Management Consulting Services  # only when cyber compliance consulting
+  "541690": Other Scientific and Technical Consulting Services  # only when IT/cyber advisory
+
+# Every record under these NAICS is treated as cyber/IT by default (unambiguous).
+naics_always_relevant:
+  - "541511"
+  - "541512"
+  - "541513"
+  - "541519"
+  - "518210"
+
+# These require a keyword match to count (ambiguous — engineering/consulting).
+naics_conditional:
+  - "541330"
+  - "541611"
+  - "541690"
+
+# Search scope. lookback_years sizes the last_modified_date extraction window
+# (USAspending has no server-side PoP-end-date filter — see docs/data_acquisition_plan.md).
+search:
+  dod_toptier_agency: Department of Defense
+  min_award_value: 250000
+  lookback_years: 6
+  forward_windows_months: [6, 12, 18, 24]
+  max_search_pages: 50        # 50 pages * 100 records = 5,000 records/call safety cap
+  max_detail_hydrations: 2000 # safety cap on award-detail API calls per run
+
+# DoD sub-agencies of interest for component-level rollups.
+dod_component_subagencies:
+  - Department of the Army
+  - Department of the Navy
+  - Department of the Air Force
+  - Defense Information Systems Agency
+  - Defense Logistics Agency
+  - Defense Health Agency
+  - U.S. Special Operations Command
+
+# SAM.gov bulk export. The public "Contract Opportunities" full CSV is the same
+# data as the api.sam.gov Opportunities API but needs no key. Path is relative to
+# the project root; the pipeline prefers it over the API when the file exists.
+sam_bulk:
+  contract_opportunities_csv: "SAM.gov data/ContractOpportunitiesFullCSV.csv"
+  dod_only: true
+
+# USAspending "Custom Award Data" bulk exports (agency 097 = DoD). The pipeline
+# prefers these over the flaky spending_by_award API when any file matches, and
+# skips detail-hydration since these rows already carry the potential end date.
+# The globs match both the "Full" fiscal-year folders and loose "Delta" files
+# (e.g. FY24_FY25_097_Contracts_Delta.csv), so dropping in more fiscal years
+# requires no config change. The loader dedupes across all files by
+# contract_award_unique_key (bare PIIDs are not award identities), keeping the
+# latest transaction per award with a deterministic same-date tie-break on
+# contract_transaction_unique_key.
+usaspending_bulk:
+  contracts_globs:
+    - "~/OneDrive/Documents/FY*_097_Contracts_*/*.csv"   # files inside a fiscal-year folder (~ = user home)
+    - "~/OneDrive/Documents/FY*_097_Contracts_*.csv"     # loose files in Documents
+    - "~/govcon-data/usaspending/FY*_097_Contracts_*/*.csv"  # NAICS-filtered radar intake built by scripts/filter_bulk_archive.py (raw FY zips in Documents remain the source of truth)
+
+# GSA PSC manual reference CSVs (committed under data/reference/ — two vintages,
+# current + pre-restructure legacy). reference_tables.build_psc_lookup unions them
+# into dim_psc; an absent/empty dir degrades to the curated-12-only lookup.
+psc_manual:
+  dir: "data/reference/psc_manual"
+
+# API endpoints (no secrets here — keys come from .env).
+endpoints:
+  usaspending_search: https://api.usaspending.gov/api/v2/search/spending_by_award/
+  usaspending_detail: https://api.usaspending.gov/api/v2/awards/{}/
+  sam_opportunities: https://api.sam.gov/opportunities/v2/search

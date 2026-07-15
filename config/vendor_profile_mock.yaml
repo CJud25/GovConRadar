@@ -1,0 +1,27 @@
+# vendor_profile_mock.yaml — 100% SYNTHETIC mock vendor profile.
+# Fictional small/mid-sized IT/cyber contractor used ONLY to demonstrate pursuit
+# scoring. Not a real company; no field represents any actual business. Every
+# consumer treats this as synthetic (data_source: SYNTHETIC). See docs/scoring_methodology.md.
+
+data_source: SYNTHETIC
+vendor_name: Meridian Cyber Solutions (mock)
+capabilities:
+  - cybersecurity compliance
+  - CMMC/NIST support
+  - RMF support
+  - help desk
+  - network operations
+  - cloud migration
+  - Power BI/data analytics
+  - software automation
+  - IT program management
+small_business: true
+socioeconomic_status: Synthetic placeholder — Service-Disabled Veteran-Owned (SDVOSB)
+states_served: [VA, MD, DC, TX, CO, AL, GA]
+agencies_with_past_performance_synthetic:
+  - Department of the Army
+  - Defense Health Agency
+max_comfortable_contract_value: 25000000
+preferred_naics: ["541512", "541519", "541611"]
+preferred_psc: [D307, D399, DA01]
+teaming_required_above: 25000000

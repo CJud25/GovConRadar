@@ -1,0 +1,17 @@
+# Repo-root Streamlit config. Streamlit resolves config from the working directory
+# (the repo root both locally and on Community Cloud), so this file is the one
+# that takes effect for the public deploy.
+[theme]
+base = "light"
+primaryColor = "#3E7CB1"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F4F6F8"
+textColor = "#2A2D34"
+font = "sans serif"
+
+[server]
+headless = true
+
+[client]
+# Never surface Python tracebacks / filesystem paths to end users of the public app.
+showErrorDetails = "none"

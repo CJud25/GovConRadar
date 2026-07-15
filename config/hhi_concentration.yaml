@@ -1,0 +1,12 @@
+# Priors for the incumbent-concentration (descriptive) read. These are ASSERTED analytical
+# choices, not fitted coefficients. Corrections v2 (Option A) dropped the DOJ/FTC HHI bands
+# AND the HHI number entirely — the read is now a top-incumbent dollar-share fact plus an
+# incumbent count, so there are deliberately NO band cutoffs in this file.
+# (Internal grep-removal token stays `hhi_concentration` even though the HHI number is gone.)
+hhi_concentration:
+  # A market with fewer than 3 scored incumbents renders "Unknown". Rationale is NOT the old
+  # HHI 10000/n floor: n=2 forces top_share >= 50% ("always looks concentrated"), whereas
+  # n>=3 lets top_share fall to 33% — giving a real spread instead of a foregone conclusion.
+  min_market_ueis: 3
+  # >15% of a market's obligated dollars lacking an incumbent UEI -> "Unknown" (low coverage).
+  max_unknown_uei_share: 0.15
