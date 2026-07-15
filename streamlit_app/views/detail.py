@@ -362,9 +362,11 @@ _render_notice_clock(ctx, sel_cid)
 _lane = el.lane_for(ctx, row, sel_cid, date.today())
 st.markdown(el.lane_chip_html(_lane), unsafe_allow_html=True)
 with st.expander("Why — evidence and the teaming path"):
-    st.markdown(_lane.detail)
+    # detail carries FPDS-derived free text (set-aside label/code) — render it as TEXT,
+    # never markdown, so a poisoned bundle can't smuggle a masked link or image beacon.
+    st.text(_lane.detail)
     if _lane.teaming:
-        st.markdown(_lane.teaming)
+        st.markdown(_lane.teaming)  # fixed copy constant, never data
     if profile_is_custom():
         st.caption(el.ATTESTED_NOTE)
 st.caption("Eligibility is a gate, not a score — it never moves the number below.")

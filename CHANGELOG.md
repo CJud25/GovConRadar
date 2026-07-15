@@ -41,7 +41,8 @@ All notable changes to this project are documented here. Format based on
   bases render refusals (never numbers), and every value is escaped. System font stack,
   self-contained CSS, print-ready.
 - **Freshness surfaces** — the header band now reads `as of {date} · {N}d old` in both live
-  and sample modes.
+  and sample modes; delivered digests carry a `Data as of {date}.` line above the footer, and
+  CRM lead exports gain a `snapshot_date` column (the data's date, never a file mtime).
 
 ### Removed
 - The 2026-07-03 in-app capture brief (three inlined template functions, including a

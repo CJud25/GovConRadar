@@ -111,7 +111,9 @@ def render_header(ctx: dict, title: str = None, subtitle: str = None, disclaimer
     # sample modes — a sample bundle ages too). Age omitted when unknown, never guessed.
     as_of = ctx.get("as_of", "unknown")
     age = snapshot_age_days(as_of)
-    as_of_txt = f"as of {as_of} · {age}d old" if age is not None else f"as of {as_of}"
+    # html.escape: as_of is data-derived (snapshot_date cell) and lands in an
+    # unsafe_allow_html band — the house rule allows no unescaped interpolation.
+    as_of_txt = html.escape(f"as of {as_of} · {age}d old" if age is not None else f"as of {as_of}")
     # "Scoring as" badge — green when a real company profile is set, amber for demo.
     prof = ctx.get("profile") or {}
     custom = ctx.get("profile_custom")

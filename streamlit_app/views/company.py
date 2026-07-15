@@ -141,9 +141,13 @@ if profile_is_custom():
         st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
     entity = el.entity_from_profile(p)
     if entity is not None and not cands.empty:
-        counts = el.lane_counts(cands, entity, datetime.date.today())
+        # Data-Gap quarantine excluded (house rule: never in a headline denominator) —
+        # the strip tallies the real forward pipeline, not stale dead records.
+        strip_pool = cands[cands["priority_tier"].astype(str) != "Data Gap"] \
+            if "priority_tier" in cands.columns else cands
+        counts = el.lane_counts(strip_pool, entity, datetime.date.today())
         st.markdown(
-            f"Prime-path check across {len(cands):,} candidates: {counts['gate']} gated · "
+            f"Prime-path check across {len(strip_pool):,} candidates: {counts['gate']} gated · "
             f"{counts['warn']} cautions · {counts['clear']} clear · {counts['unknown']} unknown"
         )
         st.caption(

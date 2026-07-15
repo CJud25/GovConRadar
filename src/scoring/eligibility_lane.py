@@ -12,8 +12,10 @@ Honesty posture:
   * Blank ≠ NONE. A blank FPDS set-aside code means "not reported" (unknown), while the NONE
     family is an affirmative full-and-open record (clear). Most order-level records simply
     don't report a set-aside.
-  * A live solicitation's set-aside (notice path) outranks the expiring contract's historical
-    code — the CO's published decision is the real one. Historical codes only ever *warn*.
+  * A live solicitation's NON-OPEN set-aside (notice path) outranks the expiring contract's
+    historical code — the CO's published restriction is the real one. A notice reporting the
+    NONE family falls through to the historical path (an affirmed open competition restricts
+    nobody, so there is nothing to gate). Historical codes only ever *warn*.
   * No profile ⇒ unknown, never a guess. Certifications are self-attested and never verified.
   * Deterministic: injected ``today`` (8(a) exit dates), no I/O, no randomness.
 """
