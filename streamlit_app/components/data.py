@@ -291,6 +291,9 @@ def get_context() -> dict:
         "dim_naics": load_table(ds, "dim_naics"),
         "dim_psc": load_table(ds, "dim_psc"),
         "data_quality": load_table(ds, "data_quality_report"),
+        # Presence-tolerant: older bundles (incl. the shipped release) have no
+        # trust table — surfaces render an honest "not present" caption on None.
+        "trust_metrics": load_table(ds, "trust_metrics_report"),
     }
 
 

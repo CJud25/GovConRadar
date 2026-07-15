@@ -19,6 +19,11 @@ from pathlib import Path
 
 import pandas as pd
 
+# cp1252 Windows consoles cannot print the '≥' inside pin labels — reconfigure the
+# print edge (same fix the digest CLI needed; harmless where stdout is already UTF-8).
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parents[1]
 
 # Pin registry: (relative file, regex with ONE capture group, source key, scope).
@@ -45,6 +50,10 @@ PINS = [
     ("docs/methodology_notes.md", r"measured: ([\d,]+) of", "linked_candidate_count", "full"),
     ("docs/methodology_notes.md", r"of ([\d,]+); the app", "recompete_candidate_count", "full"),
     ("docs/methodology_notes.md", r"notice on the (\d{4}-\d{2}-\d{2}) snapshot", "snapshot_date", "full"),
+    # Measurement-threshold pins (S20): the README promise must state the SAME floors
+    # config/measurement.yaml pins — prose drift here would misstate the publication gate.
+    ("README.md", r"≥(\d+) labels per link tier", "min_labels_per_tier", "sample"),
+    ("README.md", r"≥(\d+) determinable outcome labels", "min_determinable_for_precision", "sample"),
 ]
 
 # The data-snapshot release-tag sweep: every tag in README.md + docs/ must equal
@@ -60,6 +69,15 @@ def _num(text: str) -> str:
 
 def build_sources(data_dir: Path | None) -> dict:
     src: dict[str, str] = {}
+    try:
+        sys.path.insert(0, str(ROOT / "src"))
+        from utils.config import MEASUREMENT
+
+        src["min_labels_per_tier"] = str(MEASUREMENT["link_labels"]["min_labels_per_tier"])
+        src["min_determinable_for_precision"] = str(
+            MEASUREMENT["outcome_labels"]["min_determinable_for_precision"])
+    except Exception:
+        pass  # a tree without src/ or the YAML SKIPs the threshold pins honestly
     sample_fact = ROOT / "data" / "sample" / "fact_recompete_candidates.csv"
     if sample_fact.exists():
         src["sample_row_count"] = str(len(pd.read_csv(sample_fact, usecols=[0], low_memory=False)))

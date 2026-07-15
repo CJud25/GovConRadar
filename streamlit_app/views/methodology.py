@@ -1,4 +1,6 @@
 """Data Quality & Methodology — renders pipeline outputs so the app states its own limits."""
+import html
+
 import pandas as pd
 import streamlit as st
 
@@ -147,6 +149,58 @@ if bridge is not None and not bridge.empty and "link_confidence" in bridge and c
     )
 else:
     st.caption("No opportunity-bridge data loaded in this dataset.")
+
+st.subheader("Measured trust — what is verified, and what is not yet")
+_trust = ctx.get("trust_metrics")
+if _trust is None or _trust.empty:
+    st.caption("Trust metrics not present in this dataset.")
+else:
+    _app_rows = _trust[_trust["surface"] == "app"]
+    _precision = _app_rows[_app_rows["metric"].str.startswith("link_precision")]
+    if not (_precision["gate_state"] == "published").any():
+        st.markdown(
+            "Precision is **not yet measured** — and no number appears here until it is. "
+            "Link precision per confidence tier publishes only after hand-labeled samples "
+            "cross the pinned thresholds in `config/measurement.yaml`, each with its n and "
+            "a 95% Wilson interval. That refusal is the feature: it is what makes the "
+            "numbers you *do* see below believable."
+        )
+    _LABELS = {
+        "link_precision_high": "Link precision — High tier",
+        "link_precision_medium": "Link precision — Medium tier",
+        "link_precision_low": "Link precision — Low tier",
+        "link_false_link_rate_high": "False-link rate — High tier",
+        "link_false_link_rate_medium": "False-link rate — Medium tier",
+        "link_false_link_rate_low": "False-link rate — Low tier",
+        "link_unsure_rate_high": "Unsure share — High tier",
+        "link_unsure_rate_medium": "Unsure share — Medium tier",
+        "link_unsure_rate_low": "Unsure share — Low tier",
+        "ptw_abstention_share": "Price-range refusals",
+        "burn_abstention_share": "Obligation-pace refusals",
+        "successor_abstention_share": "Successor-read refusals",
+        "vulnerability_abstention_share": "Vulnerability-score refusals",
+        "data_gap_share": "Data-Gap quarantine share",
+        "lead_time_median_days": "Lead time — median days (lower bound)",
+        "lead_time_flagged_after_rate": "Lead time — flagged-after-notice share",
+        "lead_time_censored_share": "Lead time — censored share",
+        "lead_time_window_precedes_n": "Lead time — notices predating the window",
+    }
+    for _, _row_ in _app_rows.iterrows():
+        _label = _LABELS.get(str(_row_["metric"]), str(_row_["metric"]))
+        _note = html.escape(str(_row_["note"]))
+        if _row_["gate_state"] == "published":
+            _val = float(_row_["value"])
+            _metric_name = str(_row_["metric"])
+            _shown = f"{_val:.0f}" if _metric_name.endswith(("_days", "_n")) else f"{_val:.1%}"
+            _ci = ""
+            if pd.notna(_row_["ci_low"]) and pd.notna(_row_["ci_high"]):
+                _ci = f", 95% CI [{float(_row_['ci_low']):.1%}, {float(_row_['ci_high']):.1%}]"
+            st.markdown(
+                f"- **{_label}: {_shown}** (n={int(_row_['n']):,}{_ci}) — {_note}",
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(f"- **{_label}:** *not yet measured* — {_note}", unsafe_allow_html=True)
 
 st.subheader("Facts vs. estimates")
 st.markdown(

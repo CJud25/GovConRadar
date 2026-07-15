@@ -1,0 +1,24 @@
+metric,value,n,ci_low,ci_high,gate_state,note,surface,snapshot_date
+link_precision_high,,0,,,not_yet_measured,not yet measured — 0 of the >=30 labels the High tier needs before a precision number publishes,app,2026-07-15
+link_false_link_rate_high,,0,,,not_yet_measured,not yet measured — 0 of the >=30 labels the High tier needs before a precision number publishes,app,2026-07-15
+link_unsure_rate_high,,0,,,not_yet_measured,no High-tier verdicts filled yet,app,2026-07-15
+link_precision_medium,,0,,,not_yet_measured,not yet measured — 0 of the >=30 labels the Medium tier needs before a precision number publishes,app,2026-07-15
+link_false_link_rate_medium,,0,,,not_yet_measured,not yet measured — 0 of the >=30 labels the Medium tier needs before a precision number publishes,app,2026-07-15
+link_unsure_rate_medium,,0,,,not_yet_measured,no Medium-tier verdicts filled yet,app,2026-07-15
+link_precision_low,,0,,,not_yet_measured,not yet measured — 0 of the >=30 labels the Low tier needs before a precision number publishes,app,2026-07-15
+link_false_link_rate_low,,0,,,not_yet_measured,not yet measured — 0 of the >=30 labels the Low tier needs before a precision number publishes,app,2026-07-15
+link_unsure_rate_low,,0,,,not_yet_measured,no Low-tier verdicts filled yet,app,2026-07-15
+ptw_abstention_share,0.001696140585029474,35964,,,published,"61 of 35,964 candidates where ptw_basis = insufficient — the estimator refused rather than guessed",app,2026-07-15
+burn_abstention_share,0.944166388610833,35964,,,published,"33,956 of 35,964 candidates where burn_basis = insufficient — the estimator refused rather than guessed",app,2026-07-15
+successor_abstention_share,0.015126237348459571,35964,,,published,"544 of 35,964 candidates where successor_visible_basis = insufficient_cell — the estimator refused rather than guessed",app,2026-07-15
+vulnerability_abstention_share,0.18435101768435103,35964,,,published,"6,630 of 35,964 candidates where vulnerability_basis = insufficient_expiration_coverage or no_forward_book — the estimator refused rather than guessed",app,2026-07-15
+data_gap_share,0.8174841508174842,35964,,,published,"29,400 of 35,964 candidates where priority_tier = Data Gap — the estimator refused rather than guessed",app,2026-07-15
+lead_time_median_days,,0,,,not_yet_measured,"no High/Medium-linked candidates with usable dates yet (906 linked case(s) precede the data window; 0 unparseable date(s)) — publishes as newly-posted notices get linked; selection bias disclosed: only the ~12% linked subset of candidates can carry a lead time, it skews late-stage (a notice already exists), and DoD FPDS reporting lags ~90 days",app,2026-07-15
+lead_time_flagged_after_rate,,0,,,not_yet_measured,"no High/Medium-linked candidates with usable dates yet (906 linked case(s) precede the data window; 0 unparseable date(s)) — publishes as newly-posted notices get linked; selection bias disclosed: only the ~12% linked subset of candidates can carry a lead time, it skews late-stage (a notice already exists), and DoD FPDS reporting lags ~90 days",app,2026-07-15
+lead_time_censored_share,,0,,,not_yet_measured,"no High/Medium-linked candidates with usable dates yet (906 linked case(s) precede the data window; 0 unparseable date(s)) — publishes as newly-posted notices get linked; selection bias disclosed: only the ~12% linked subset of candidates can carry a lead time, it skews late-stage (a notice already exists), and DoD FPDS reporting lags ~90 days",app,2026-07-15
+lead_time_window_precedes_n,,0,,,not_yet_measured,"no High/Medium-linked candidates with usable dates yet (906 linked case(s) precede the data window; 0 unparseable date(s)) — publishes as newly-posted notices get linked; selection bias disclosed: only the ~12% linked subset of candidates can carry a lead time, it skews late-stage (a notice already exists), and DoD FPDS reporting lags ~90 days",app,2026-07-15
+baseline_overlap_at_50,0.06,50,,,published,"no outcome labels in this comparison — states what tiering adds, claims nothing it can't",internal,2026-07-15
+baseline_naive_flagged_rows,0.02,50,,,published,"no outcome labels in this comparison — states what tiering adds, claims nothing it can't",internal,2026-07-15
+baseline_radar_flagged_rows,0.0,50,,,published,"no outcome labels in this comparison — states what tiering adds, claims nothing it can't",internal,2026-07-15
+baseline_naive_linked_rows,0.02,50,,,published,"no outcome labels in this comparison — states what tiering adds, claims nothing it can't",internal,2026-07-15
+baseline_radar_linked_rows,0.08,50,,,published,"no outcome labels in this comparison — states what tiering adds, claims nothing it can't",internal,2026-07-15

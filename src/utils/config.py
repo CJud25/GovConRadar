@@ -28,6 +28,7 @@ _burn = _load("burn_pressure.yaml")
 _mods = _load("mods_signal.yaml")
 _reasons = _load("reason_codes.yaml")
 _hhi = _load("hhi_concentration.yaml")
+_measurement = _load("measurement.yaml")
 
 # ─── SEARCH SCOPE / NAICS ─────────────────────────────────────────────────────
 NAICS_SEED = {str(k): v for k, v in _sources["naics_seed"].items()}
@@ -113,6 +114,52 @@ SUCCESSOR_PROXY = {
 }
 assert SUCCESSOR_PROXY["successor_min_cell_awards"] >= 2, "successor: successor_min_cell_awards >= 2"
 assert SUCCESSOR_PROXY["successor_signed_after_days"] >= 0, "successor: successor_signed_after_days >= 0"
+
+# ─── MEASUREMENT THRESHOLDS (label publication gates — config/measurement.yaml) ─
+def validate_measurement(m: dict) -> dict:
+    """Structural floors for the label-measurement gates (floors, not values — the
+    numbers themselves are asserted priors documented in the YAML). Consumed by the
+    trust-metrics stack as a plain Mapping; strict modules never import this module."""
+    from datetime import date
+
+    out = {
+        "link_labels": {
+            "target_per_tier": int(m["link_labels"]["target_per_tier"]),
+            "min_labels_per_tier": int(m["link_labels"]["min_labels_per_tier"]),
+        },
+        "outcome_labels": {
+            "cohort_fy_start": int(m["outcome_labels"]["cohort_fy_start"]),
+            "cohort_fy_end": int(m["outcome_labels"]["cohort_fy_end"]),
+            "stratified_n": int(m["outcome_labels"]["stratified_n"]),
+            "top_k": int(m["outcome_labels"]["top_k"]),
+            "min_determinable_for_precision": int(m["outcome_labels"]["min_determinable_for_precision"]),
+        },
+        "lead_time": {"min_link_confidence": str(m["lead_time"]["min_link_confidence"])},
+        "rank_stability": {
+            "min_snapshots": int(m["rank_stability"]["min_snapshots"]),
+            "top_k": int(m["rank_stability"]["top_k"]),
+            "comparable_since": str(m["rank_stability"]["comparable_since"]),
+        },
+        "sampling_seed": m["sampling_seed"],
+        "wilson_z": float(m["wilson_z"]),
+    }
+    assert out["link_labels"]["min_labels_per_tier"] >= 30, "measurement: min_labels_per_tier >= 30"
+    assert out["outcome_labels"]["top_k"] == 50, \
+        "measurement: top_k == 50 (precision@10 is structurally impossible by design)"
+    assert 40 <= out["outcome_labels"]["min_determinable_for_precision"] <= out["outcome_labels"]["top_k"], \
+        "measurement: 40 <= min_determinable_for_precision <= top_k"
+    assert out["rank_stability"]["min_snapshots"] >= 3, "measurement: min_snapshots >= 3"
+    assert out["lead_time"]["min_link_confidence"] in ("High", "Medium"), \
+        "measurement: min_link_confidence in (High, Medium)"
+    assert isinstance(out["sampling_seed"], int) and not isinstance(out["sampling_seed"], bool), \
+        "measurement: sampling_seed is an int (changing it = a new sample = relabel)"
+    assert 1.0 <= out["wilson_z"] <= 3.0, "measurement: 1.0 <= wilson_z <= 3.0"
+    assert date.fromisoformat(out["rank_stability"]["comparable_since"]), \
+        "measurement: comparable_since parses as a date"
+    return out
+
+
+MEASUREMENT = validate_measurement(_measurement)
 
 # ─── SYNTHETIC MOCK VENDOR PROFILE ────────────────────────────────────────────
 VENDOR_PROFILE_SYNTHETIC = dict(_vendor)

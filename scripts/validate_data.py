@@ -48,6 +48,11 @@ the list documented in .claude/skills/govcon-data-contract/SKILL.md:
      top-incumbent obligated-dollar share; top_share present <=> assessable; top_share in (0,1]
      and the vendor-floor + UEI-coverage gates hold on assessable markets; no negative obligated
      dollars. NO Herfindahl number and NO DOJ/FTC bands are computed (Corrections v2, Option A).
+ 13. Trust-metrics honesty (PRESENCE-GATED on trust_metrics_report): gate_state vocabulary;
+     value present <=> published (Unknown unforgeable); every gated row carries a note; CI rows
+     ordered within [0,1]; published precision floors re-checked ON THE ARTIFACT (>=30/tier,
+     >=40 for precision_at_50); NO metric named recall/_at_10/probability may exist;
+     snapshot_date matches the bundle.
 """
 import argparse
 import sys
@@ -419,6 +424,48 @@ def validate(target: Path) -> list:
         neg = int((pd.to_numeric(reportable["total_obligated_amount"], errors="coerce") < 0).sum())
         r.check("hhi_concentration:no non-positive obligated dollars on reportable candidates",
                 neg == 0, f"{neg} negative rows — deobligation math would break share denominators")
+
+    # 13. Trust-metrics honesty (PRESENCE-GATED on trust_metrics_report existing, so
+    #     pre-Phase-1 bundles — including the shipped release — stay exempt, not failed):
+    #     a gated metric can never carry a number, and no forbidden metric can exist at all.
+    trust_path = target / "trust_metrics_report.csv"
+    if trust_path.exists():
+        trust = _load(target, "trust_metrics_report")
+        from scoring.trust_metrics import GATE_STATES
+
+        r.check("trust:gate_state vocabulary",
+                trust["gate_state"].isin(GATE_STATES).all(),
+                f"unknown states: {sorted(set(trust['gate_state']) - set(GATE_STATES))}")
+        published = trust["gate_state"] == "published"
+        has_value = pd.to_numeric(trust["value"], errors="coerce").notna()
+        r.check("trust:value present <=> published (Unknown is unforgeable)",
+                bool((published == has_value).all()),
+                f"{int((published != has_value).sum())} row(s) violate the equivalence")
+        notes = trust["note"].fillna("").astype(str).str.strip()
+        r.check("trust:every non-published row carries an honest note",
+                bool((notes[~published].str.len() > 0).all()),
+                "a gated row with no note is a silent refusal")
+        ci_lo = pd.to_numeric(trust["ci_low"], errors="coerce")
+        ci_hi = pd.to_numeric(trust["ci_high"], errors="coerce")
+        val = pd.to_numeric(trust["value"], errors="coerce")
+        with_ci = ci_lo.notna() & ci_hi.notna()
+        rate_ok = ((ci_lo[with_ci] >= 0) & (ci_lo[with_ci] <= val[with_ci])
+                   & (val[with_ci] <= ci_hi[with_ci]) & (ci_hi[with_ci] <= 1))
+        r.check("trust:rate metrics 0 <= ci_low <= value <= ci_high <= 1",
+                bool(rate_ok.all()), f"{int((~rate_ok).sum())} CI row(s) out of order")
+        n_col = pd.to_numeric(trust["n"], errors="coerce")
+        prec = trust["metric"].str.match(r"link_precision_(high|medium|low)$") & published
+        r.check("trust:published link precision respects the >=30 floor ON THE ARTIFACT",
+                bool((n_col[prec] >= 30).all()), f"{int((n_col[prec] < 30).sum())} row(s) under floor")
+        p50 = (trust["metric"] == "precision_at_50") & published
+        r.check("trust:published precision_at_50 respects the >=40 floor ON THE ARTIFACT",
+                bool((n_col[p50] >= 40).all()), f"{int((n_col[p50] < 40).sum())} row(s) under floor")
+        forbidden = trust["metric"].str.contains(r"recall|_at_10|probability", regex=True)
+        r.check("trust:no recall / precision@10 / probability metric exists",
+                not bool(forbidden.any()), f"forbidden: {trust.loc[forbidden, 'metric'].tolist()}")
+        r.check("trust:snapshot_date matches dashboard_kpi_summary",
+                bool((trust["snapshot_date"].astype(str) == str(kpi["snapshot_date"])).all()),
+                "trust rows stamped with a different snapshot than the bundle")
 
     return r.failures
 

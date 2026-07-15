@@ -1,7 +1,7 @@
 # GovCon Recompete Radar
 
 [![CI](https://github.com/CJud25/GovConRadar/actions/workflows/ci.yml/badge.svg)](https://github.com/CJud25/GovConRadar/actions/workflows/ci.yml)
-&nbsp;·&nbsp; **85 data-integrity checks · all views boot** &nbsp;·&nbsp; **Scorer v2.0.0** &nbsp;·&nbsp; Python 3.10+ &nbsp;·&nbsp; [Live demo → govconradar.streamlit.app](https://govconradar.streamlit.app)
+&nbsp;·&nbsp; **94 data-integrity checks · all views boot** &nbsp;·&nbsp; **Scorer v2.0.0** &nbsp;·&nbsp; Python 3.10+ &nbsp;·&nbsp; [Live demo → govconradar.streamlit.app](https://govconradar.streamlit.app)
 
 **Find the DoD cyber/IT contracts coming up for recompete — and know which numbers you can defend.**
 
@@ -55,6 +55,22 @@ data-quality score went from a fake **100.0** to an honest **55.1**. See [`CHANG
 - **Auditable by construction** — `scripts/validate_data.py` re-derives every KPI from the fact tables
   and proves the app's live re-score reproduces the baked data (max diff 0.0). It runs in CI.
 
+### The promise — and how it's measured
+
+GovConRadar exists to **reduce the analyst hours needed to build and maintain a trustworthy DoD
+IT/cyber recompete pipeline**. It does not predict who wins — it finds the recompetes worth an
+analyst's hours and shows the evidence for each.
+
+Accuracy claims are **gated, not asserted**: link precision per confidence tier and top-50 outcome
+precision publish only after hand-labeled samples cross the pinned thresholds in
+`config/measurement.yaml` (≥30 labels per link tier; ≥40 determinable outcome labels on the
+disclosed top-50 sample), always with their n and a 95% Wilson interval. Until then the page reads
+"not yet measured" — that refusal is the feature.
+
+**No recall number is published, ever.** Only ~1 in 8 candidates links to a live SAM.gov notice, so
+the set of recompetes this radar *missed* is structurally unobservable in public data; any recall
+claim would be fiction.
+
 ## How we compare
 
 Three design principles, stated about market *patterns* rather than named products:
@@ -82,7 +98,7 @@ py -m streamlit run streamlit_app/app.py
 py scripts/download_data.py            # -> data/powerbi/  (then the app reads "live")
 
 # Verify the shipped bundle — the exact gates CI runs on every push
-py scripts/validate_data.py --sample   # 85 data-integrity checks over data/sample/
+py scripts/validate_data.py --sample   # 94 data-integrity checks over data/sample/
 py scripts/smoke_app.py                # boots every app view on the sample
 
 # The full snapshot (if pulled above) validates with the same contract

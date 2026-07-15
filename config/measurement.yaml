@@ -1,0 +1,19 @@
+# config/measurement.yaml — NEW YAML: rides `git archive … config`; every deploy from S21 on
+# MUST verify it in the clone (import-time load — a missing file kills the live app at boot).
+link_labels:
+  target_per_tier: 60           # sampled cases per link_confidence tier (~128 total; High tier capped at 8)
+  min_labels_per_tier: 30       # publication floor (adapter re-asserts >= 30)
+outcome_labels:
+  cohort_fy_start: 2023         # potential_end_date in 2022-10-01 .. 2024-09-30
+  cohort_fy_end: 2024
+  stratified_n: 150
+  top_k: 50                     # adapter asserts == 50 (precision@10 structurally impossible)
+  min_determinable_for_precision: 40
+lead_time:
+  min_link_confidence: Medium   # High + Medium links only
+rank_stability:
+  min_snapshots: 3
+  top_k: 50
+  comparable_since: "2026-07-07"  # candidate-id migration date; older snapshots un-diffable
+sampling_seed: 20260714         # deterministic worksheets; changing it = new sample = relabel
+wilson_z: 1.96
