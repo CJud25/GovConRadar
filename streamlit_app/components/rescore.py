@@ -75,6 +75,11 @@ DEMO_PROFILE = {
     "states_served": ["VA", "MD", "DC", "TX", "CO", "AL", "GA"],
     "nationwide": False,
     "is_demo": True,
+    # Self-attested certifications (eligibility lane). The demo profile NEVER
+    # fabricates gate states — no certs, no 8(a) exit date, no size self-cert.
+    "certs": [],
+    "exit_8a": "",
+    "sb_small_naics": False,
 }
 BLANK_PROFILE = {
     "company_name": "",
@@ -86,6 +91,9 @@ BLANK_PROFILE = {
     "states_served": [],
     "nationwide": False,
     "is_demo": False,
+    "certs": [],
+    "exit_8a": "",
+    "sb_small_naics": False,
 }
 
 

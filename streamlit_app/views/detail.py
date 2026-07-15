@@ -7,10 +7,12 @@ from datetime import date
 import pandas as pd
 import streamlit as st
 
-from components import charts, rescore, shell, theme
+from components import briefing, charts, rescore, shell, theme
+from components import eligibility_lane as el
 from components import price_to_win as ptw
 from components import reason_codes as rc
-from components.data import get_context, notice_response_days, page_header, usd
+from components.data import get_context, notice_response_days, page_header, profile_is_custom, usd
+from labels.taxonomy import SURFACE_LANGUAGE
 
 MONTHS = 30.44
 
@@ -227,7 +229,8 @@ def _render_mods_signals(row):
             f'<span class="chip chip-red">◐ Terminated (verify) — {html.escape(kind)}{suffix}</span>'
         )
     if _mod_true(row.get("bridge_flag")):
-        chips.append('<span class="chip chip-amber">◐ Bridge (non-competed extension)</span>')
+        # Chip text from the ONE outcome-taxonomy language source (S27).
+        chips.append(f'<span class="chip chip-amber">◐ {html.escape(SURFACE_LANGUAGE["extension_bridge"])}</span>')
     if _mod_true(row.get("ceiling_balloon_flag")):
         ratio = row.get("ceiling_growth_ratio")
         if pd.notna(ratio):
@@ -355,6 +358,17 @@ if _status_chip[1]:
 # ---- D1: live "response window" notice-clock chip (linked-notice subset only) ----
 _render_notice_clock(ctx, sel_cid)
 
+# ---- Eligibility lane (categorical, ABOVE the score — a gate, never a component) ----
+_lane = el.lane_for(ctx, row, sel_cid, date.today())
+st.markdown(el.lane_chip_html(_lane), unsafe_allow_html=True)
+with st.expander("Why — evidence and the teaming path"):
+    st.markdown(_lane.detail)
+    if _lane.teaming:
+        st.markdown(_lane.teaming)
+    if profile_is_custom():
+        st.caption(el.ATTESTED_NOTE)
+st.caption("Eligibility is a gate, not a score — it never moves the number below.")
+
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Pursuit score", f"{row.get('pursuit_score', float('nan')):.0f}")
 c2.metric("Priority tier", str(row.get("priority_tier", "—")).replace("Tier ", "T"))
@@ -473,98 +487,9 @@ if incumbent and "incumbent_vendor" in cand:
         )
 
 
-def _brief_ptw_block(row) -> str:
-    """Competitive Price Range block for the Capture Brief — only when the baked
-    baseline actually produced a range (never a fabricated number)."""
-    if row.get("ptw_basis") != "comparables" or pd.isna(row.get("ptw_market_median")):
-        return ""
-    lo, mid, hi = row.get("ptw_low"), row.get("ptw_market_median"), row.get("ptw_high")
-    ds, n = row.get("ptw_data_strength", "—"), row.get("ptw_n_comparables", "—")
-    return (f"<h2>Competitive Price Range (annualized)</h2><table>"
-            f"<tr><td>Low · Market Median · High</td><td class='num'>{theme.usd_short(lo)} · "
-            f"{theme.usd_short(mid)} · {theme.usd_short(hi)} /yr</td></tr>"
-            f"<tr><td>Data strength</td><td>{html.escape(str(ds))} · {n} comparables</td></tr></table>"
-            f"<div style='font-size:11px;color:#8A8D91'>Range of comparable historical <b>winning</b> awards "
-            f"(run-rate), not a bid prediction — competitor bids are not public. Estimate; not FAR 15.4 certified "
-            f"cost or pricing data.</div>")
-
-
-def _brief_burn_block(row) -> str:
-    """Obligation-pace block for the Capture Brief — only when the pace is actually MEASURED
-    (never a fabricated band). Descriptive obligation-vs-PoP pace: not spend, not a forecast (C1.1)."""
-    if str(row.get("burn_basis", "")) != "measured":
-        return ""
-    cr, bp = row.get("ceiling_burn_ratio"), row.get("burn_pressure")
-    if pd.isna(cr) or pd.isna(bp):
-        return ""
-    label = theme.BURN_LABELS.get(str(row.get("burn_band")), "—")
-    elapsed = float(cr) - float(bp)
-    return (f"<h2>Obligation pace</h2><table>"
-            f"<tr><td>Ceiling obligated · PoP elapsed</td><td class='num'>{float(cr):.0%} · {elapsed:.0%}</td></tr>"
-            f"<tr><td>Pace</td><td>{html.escape(str(label))}</td></tr></table>"
-            f"<div style='font-size:11px;color:#8A8D91'>Descriptive obligation-vs-PoP pace — reflects the funding "
-            f"profile, not spend, and not a recompete forecast. Ceiling-obligated and PoP-elapsed are facts from "
-            f"USAspending; the pace band is an estimate.</div>")
-
-
-# ---- Capture Brief (print-ready HTML → save/print to PDF) ----
-def _capture_brief_html(row, brk, as_of) -> str:
-    def g(k, default="—"):
-        v = row.get(k)
-        return html.escape(str(v)) if pd.notna(v) and str(v) != "" else default
-    tminus = f"T–{int(round(months_left))} months" if months_left is not None and months_left >= 0 else "expired"
-    brk_rows = ""
-    if not brk.empty and {"score_component", "weighted_score"}.issubset(brk.columns):
-        for _, b in brk.sort_values("weighted_score", ascending=False).iterrows():
-            brk_rows += f"<tr><td>{html.escape(str(b['score_component']))}</td><td class='num'>{b['weighted_score']:.1f}</td></tr>"
-    profile = [("PIID", "piid"), ("DoD Component", "subagency"), ("Incumbent", "incumbent_vendor"), ("NAICS", "naics"),
-               ("PSC", "psc"), ("Extent competed", "extent_competed"), ("Capture phase", "capture_phase"),
-               ("Est. recompete window", None)]
-    prof_rows = ""
-    for label, key in profile:
-        if key is None:
-            val = f"{g('estimated_recompete_window_start')} → {g('estimated_recompete_window_end')}"
-        else:
-            val = g(key)
-        prof_rows += f"<tr><td>{label}</td><td>{val}</td></tr>"
-    return f"""<!doctype html><html><head><meta charset="utf-8"><title>Capture Brief — {g('title_display')}</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Public+Sans:wght@400;600&family=IBM+Plex+Mono&display=swap');
-* {{ box-sizing: border-box; }} body {{ font-family:'Public Sans',sans-serif; color:#2A2D34; margin:0; padding:32px 40px; }}
-.band {{ background:#0E1B26; color:#fff; padding:10px 16px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; }}
-.wm {{ font-family:'Archivo'; font-weight:700; letter-spacing:.16em; font-size:13px; }} .wm .d{{color:#E4572E}}
-h1 {{ font-family:'Archivo'; font-size:22px; margin:18px 0 4px; }}
-.kpis {{ display:flex; gap:10px; margin:14px 0; }}
-.kpi {{ flex:1; border:1px solid #E7EBEF; border-left:4px solid #3E7CB1; border-radius:8px; padding:10px 12px; }}
-.kpi.red{{border-left-color:#E4572E}} .kpi .l{{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#8A8D91;font-weight:700}}
-.kpi .v{{font-family:'Archivo';font-weight:700;font-size:22px}}
-table {{ width:100%; border-collapse:collapse; margin:8px 0 16px; font-size:13px; }}
-td {{ padding:6px 8px; border-bottom:1px solid #EEF1F4; }} td:first-child{{color:#64707A;width:42%}}
-.num{{font-family:'IBM Plex Mono';text-align:right}}
-h2 {{ font-family:'Archivo'; font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:#1B435D; margin:16px 0 4px; }}
-.foot {{ font-size:11px; color:#8A8D91; border-top:1px solid #E7EBEF; padding-top:8px; margin-top:18px; }}
-@media print {{ body{{padding:0}} }}
-</style></head><body>
-<div class="band"><span class="wm">RECOMPETE<span class="d">·</span>RADAR</span><span style="font-family:'IBM Plex Mono';font-size:11px">Capture Brief · {as_of}</span></div>
-<h1>{g('title_display')}</h1>
-<div style="font-family:'IBM Plex Mono';font-size:12px;color:#64707A">{g('subagency')} · Incumbent: {g('incumbent_vendor')} · Runway: {tminus}</div>
-<div class="kpis">
-  <div class="kpi red"><div class="l">Pursuit score</div><div class="v">{row.get('pursuit_score', float('nan')):.0f}</div></div>
-  <div class="kpi"><div class="l">Tier</div><div class="v" style="font-size:15px">{g('priority_tier')}</div></div>
-  <div class="kpi"><div class="l">Est. value</div><div class="v">{theme.usd_short(row.get('total_obligated_amount'))}</div></div>
-  <div class="kpi"><div class="l">Expires</div><div class="v" style="font-size:15px">{g('selected_expiration_date')}</div></div>
-</div>
-<h2>Contract profile</h2><table>{prof_rows}</table>
-{_brief_burn_block(row)}
-{_brief_ptw_block(row)}
-<h2>Pursuit score — weighted components</h2><table>{brk_rows or '<tr><td>No breakdown available</td><td></td></tr>'}</table>
-<div class="foot">Pursuit score, priority tier, capture phase, and recompete windows are <b>analytical estimates</b>, not official
-government predictions. Contract identifiers, agencies, values, and dates are facts from USAspending.gov. Generated by Recompete Radar · data as of {as_of}.</div>
-</body></html>"""
-
-
-brief_html = _capture_brief_html(row, brk, ctx.get("as_of", "unknown"))
-st.download_button("📄 Download Capture Brief (print-ready HTML → save as PDF)",
+# ---- Capture Brief (evidence-contract renderer — src/briefing via the ONE adapter) ----
+brief_html = briefing.build_brief_html(ctx, row, sel_cid, date.today())
+st.download_button("Download Capture Brief (print-ready HTML → save as PDF)",
                    brief_html.encode("utf-8"),
                    file_name=f"capture_brief_{sel_cid}.html", mime="text/html")
 

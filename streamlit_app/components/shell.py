@@ -100,11 +100,18 @@ def render_header(ctx: dict, title: str = None, subtitle: str = None, disclaimer
     """The canonical page header: CSS + the RADAR_INK band (wordmark + data badge +
     as-of), then an optional page title/subtitle and the estimates-vs-facts note."""
     inject_css()
+    from components.data import snapshot_age_days  # lazy: data.py imports this module
+
     live = ctx.get("mode") == "live"
     badge_cls = "live" if live else "sample"
     # "LIVE DATA" overstated a static snapshot. This is a periodically-refreshed
     # public-data snapshot (runway recomputed to today), not a live feed.
     badge_txt = "PUBLIC DATA SNAPSHOT" if live else "SAMPLE DATA"
+    # Freshness in the band itself: the as-of date plus its age in days (both live and
+    # sample modes — a sample bundle ages too). Age omitted when unknown, never guessed.
+    as_of = ctx.get("as_of", "unknown")
+    age = snapshot_age_days(as_of)
+    as_of_txt = f"as of {as_of} · {age}d old" if age is not None else f"as of {as_of}"
     # "Scoring as" badge — green when a real company profile is set, amber for demo.
     prof = ctx.get("profile") or {}
     custom = ctx.get("profile_custom")
@@ -121,7 +128,7 @@ def render_header(ctx: dict, title: str = None, subtitle: str = None, disclaimer
           <div class="rr-meta">
             <span class="rr-badge {score_cls}">{score_txt}</span>
             <span class="rr-badge {badge_cls}">{badge_txt}</span>
-            <span>as of {ctx.get('as_of', 'unknown')}</span>
+            <span>{as_of_txt}</span>
           </div>
         </div>
         """,
@@ -130,8 +137,6 @@ def render_header(ctx: dict, title: str = None, subtitle: str = None, disclaimer
     # Freshness banner: a snapshot older than 45 days gets a soft amber notice so no
     # one mistakes recomputed-to-today runway for newly-ingested awards.
     if live:
-        from components.data import snapshot_age_days
-        age = snapshot_age_days(ctx.get("as_of", ""))
         if age is not None and age > 45:
             st.warning(
                 f"Snapshot is {age} days old — runway figures are recomputed to today, "

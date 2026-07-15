@@ -201,17 +201,30 @@ def load_transport_from_env() -> Transport:
     )
 
 
-def push_digest(digest_text: str, items: list[dict], mode: str, transport: Transport) -> None:
+def push_digest(
+    digest_text: str,
+    items: list[dict],
+    mode: str,
+    transport: Transport,
+    *,
+    as_of: str = "",
+    briefs: tuple[str, ...] = (),
+) -> None:
     """Filter ``items`` by ``mode``, build the subject + body, and hand them to ``transport``.
 
-    Subject carries the filtered change count; body is the passed ``digest_text`` followed by
-    the honesty footer on its own line. Sends even when the filtered set is empty — an honest
-    "0 change(s)" digest is still a delivery. Config/transport errors raise (loud); empty
-    content does not.
+    Subject carries the filtered change count; body is the passed ``digest_text``, then any
+    opt-in text-brief blocks (each separated by ``---`` — S32; empty tuple leaves the body
+    byte-identical to the pre-brief behavior), then the honesty footer on its own line —
+    preceded by a ``Data as of {as_of}.`` freshness line when the caller passes a non-empty
+    ``as_of`` (the snapshot date from the data, never a file mtime). Sends even when the
+    filtered set is empty — an honest "0 change(s)" digest is still a delivery.
+    Config/transport errors raise (loud); empty content does not.
     """
     filtered = filter_items(items, mode)
     subject = f"GovConRadar digest — {len(filtered)} change(s)"
-    body = f"{digest_text}\n\n{FOOTER}"
+    brief_blocks = "".join(f"\n\n---\n{b}" for b in briefs)
+    freshness = f"Data as of {as_of}.\n" if as_of else ""
+    body = f"{digest_text}{brief_blocks}\n\n{freshness}{FOOTER}"
     transport.send(subject, body)
 
 
@@ -230,6 +243,7 @@ CRM_COLUMNS = [
     "priority_tier",
     "top_reason_code",
     "crm_note",
+    "snapshot_date",  # appended (order pinned, additive-only) — the data's as-of, S26
 ]
 
 # Short-form per-row lag disclosure. Deliberately the row-sized form of the digest FOOTER
@@ -297,7 +311,11 @@ def _mm_dd(v: object) -> str:
 
 
 def build_crm_rows(
-    candidates: pd.DataFrame, profile: Mapping[str, object], reason_cfg: rc.ReasonConfig
+    candidates: pd.DataFrame,
+    profile: Mapping[str, object],
+    reason_cfg: rc.ReasonConfig,
+    *,
+    as_of: str = "",
 ) -> pd.DataFrame:
     """Flatten candidates into CRM lead rows — one row per input candidate, keyed by the
     stable ``candidate_id``, input order preserved, columns exactly ``CRM_COLUMNS``.
@@ -308,7 +326,9 @@ def build_crm_rows(
     ``crm_note`` one-liner carries: subagency, incumbent, compact $run-rate/yr (the clause is
     DROPPED entirely when ``ptw_incumbent_runrate`` is absent/NaN — never '$None'), 'ends
     MM/DD', the top reason label, and the short-form per-row lag disclosure. Every string
-    cell of the returned frame passes through ``_csv_safe``.
+    cell of the returned frame passes through ``_csv_safe``. ``as_of`` (the snapshot date
+    from the data, "" when unknown) is stamped into every row's ``snapshot_date`` column so
+    an imported lead always says how fresh it was.
     """
     rows: list[dict] = []
     for row in candidates.to_dict("records"):
@@ -344,6 +364,7 @@ def build_crm_rows(
                 "priority_tier": row.get("priority_tier"),
                 "top_reason_code": top.code,
                 "crm_note": " · ".join(parts),
+                "snapshot_date": as_of,
             }
         )
 

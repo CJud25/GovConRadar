@@ -16,6 +16,7 @@ import pandas as pd
 import streamlit as st
 
 from components import rescore
+from labels.taxonomy import SURFACE_LANGUAGE
 from scoring import quality_flags as quality
 
 # components -> streamlit_app -> repo root
@@ -135,6 +136,11 @@ def notice_response_days(deadline, today: date) -> int | None:
 # every teammate sees the same company's board.
 _PROFILE_QP = "p"
 
+# Self-attested certification tokens (the eligibility lane's vocabulary). Defined
+# ONCE here beside _coerce_profile, the profile-schema owner — the lane adapter
+# imports it; never redefine elsewhere.
+CERT_TOKENS = ("8A", "HUBZONE", "SDVOSB", "VOSB", "WOSB", "EDWOSB")
+
 
 def _coerce_profile(p: dict) -> dict:
     """Normalize an untrusted profile (from the ?p= URL param) to the exact schema
@@ -152,6 +158,12 @@ def _coerce_profile(p: dict) -> dict:
     out["nationwide"] = bool(p.get("nationwide"))
     out["is_demo"] = bool(p.get("is_demo"))
     out["company_name"] = str(p.get("company_name", ""))[:100]
+    certs = p.get("certs")
+    out["certs"] = ([t for t in (str(x) for x in certs) if t in CERT_TOKENS][:6]
+                    if isinstance(certs, list) else [])
+    exit_8a = str(p.get("exit_8a", ""))[:10]
+    out["exit_8a"] = exit_8a if exit_8a and pd.notna(pd.to_datetime(exit_8a, errors="coerce")) else ""
+    out["sb_small_naics"] = bool(p.get("sb_small_naics"))
     return out
 
 
@@ -240,8 +252,10 @@ def reportable_candidates(df: pd.DataFrame) -> pd.DataFrame:
 #
 # Single-sourced here (not duplicated per-view) so the predicate AND the fixed copy
 # are named once and reused identically by the Explorer checkbox and the Home KPI.
-BRIDGE_WATCH_LABEL = "Recently lapsed, no successor visible yet"
-BRIDGE_WATCH_COPY = "no successor visible in public data yet (DoD reporting lags ~90 days)"
+# Re-pointed at labels.taxonomy.SURFACE_LANGUAGE (S27) — the ONE language source for the
+# outcome-taxonomy copy. Names kept so the Explorer checkbox + Home KPI need zero churn.
+BRIDGE_WATCH_LABEL = SURFACE_LANGUAGE["bridge_watch_label"]
+BRIDGE_WATCH_COPY = SURFACE_LANGUAGE["bridge_watch_note"]
 
 
 def bridge_watch_mask(df: pd.DataFrame) -> pd.Series:

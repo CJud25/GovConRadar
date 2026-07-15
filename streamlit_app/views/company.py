@@ -1,10 +1,24 @@
 """Your Company — enter a company profile once; every pursuit score across the app
 is recomputed live against it. The app's answer to "is this pipeline for ME?"."""
+import datetime
+
 import pandas as pd
 import streamlit as st
 
+from components import eligibility_lane as el
 from components import rescore, theme
-from components.data import clear_profile, get_context, get_profile, page_header, profile_is_custom, set_profile
+from components.data import (
+    CERT_TOKENS,
+    clear_profile,
+    get_context,
+    get_profile,
+    page_header,
+    profile_is_custom,
+    set_profile,
+)
+
+# Display labels for the attested-cert tokens (tokens are the stored vocabulary).
+_CERT_LABELS = {"8A": "8(a)", "HUBZONE": "HUBZone"}
 
 ctx = get_context()
 page_header("Your Company", ctx,
@@ -77,6 +91,20 @@ with st.form("company_profile"):
         nationwide = st.checkbox("Nationwide / remote (skip state matching)", value=bool(draft.get("nationwide")))
         states_sel = st.multiselect("States served", state_opts, disabled=nationwide,
                                     default=[s for s in draft.get("states_served", []) if s in state_opts])
+        certs_sel = st.multiselect("Certifications you hold (self-attested)", list(CERT_TOKENS),
+                                   default=[c for c in draft.get("certs", []) if c in CERT_TOKENS],
+                                   format_func=lambda t: _CERT_LABELS.get(t, t))
+        exit_8a = ""
+        if "8A" in certs_sel:
+            prior = pd.to_datetime(draft.get("exit_8a") or None, errors="coerce")
+            d8a = st.date_input("8(a) program exit date (if known)",
+                                value=prior.date() if pd.notna(prior) else None,
+                                min_value=datetime.date(2000, 1, 1), max_value=datetime.date(2100, 1, 1))
+            exit_8a = d8a.isoformat() if d8a else ""
+        sb_small = st.checkbox("Small business under your preferred NAICS (self-certified)",
+                               value=bool(draft.get("sb_small_naics")))
+        st.caption("Self-attested — used only to check set-aside eligibility. "
+                   "The radar never verifies certifications.")
     st.caption("🔒 Your profile is saved in this page's URL — **not on any server** — so anyone you share the "
                "link with can see your company's capabilities and targets. Share it like you'd share the profile itself.")
     submitted = st.form_submit_button("Score my pipeline  →", type="primary", width="stretch")
@@ -91,6 +119,7 @@ if submitted:
             "agencies_with_past_performance": agencies_sel,
             "max_comfortable_contract_value": max_val, "states_served": states_sel,
             "nationwide": nationwide, "is_demo": False,
+            "certs": certs_sel, "exit_8a": exit_8a, "sb_small_naics": sb_small,
         }
         set_profile(profile)
         st.session_state.pop("profile_draft", None)
@@ -110,6 +139,18 @@ if profile_is_custom():
                  "Δ": int(now.get(t, 0) - base.get(t, 0))} for t in order]
         st.markdown("**How your profile changed the board** (vs. the synthetic demo baseline, as of the snapshot date):")
         st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+    entity = el.entity_from_profile(p)
+    if entity is not None and not cands.empty:
+        counts = el.lane_counts(cands, entity, datetime.date.today())
+        st.markdown(
+            f"Prime-path check across {len(cands):,} candidates: {counts['gate']} gated · "
+            f"{counts['warn']} cautions · {counts['clear']} clear · {counts['unknown']} unknown"
+        )
+        st.caption(
+            "Historical set-asides vs. your attested certifications. Unknown dominates honestly — "
+            "most records don't report a set-aside, and blank does not mean unrestricted. "
+            "Open any contract for its live-notice check."
+        )
     if st.button("Reset to demo profile"):
         clear_profile(); st.session_state.pop("profile_draft", None); st.rerun()
 else:

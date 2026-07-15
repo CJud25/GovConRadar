@@ -4,6 +4,36 @@ All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project versions the **scorer**
 (`SCORER_VERSION`) alongside the app.
 
+## [2.4.0] — 2026-07-15 — Eligibility lane, deterministic capture brief, freshness surfaces
+
+### Added
+- **Attested certifications on the company profile** — a self-attested cert multiselect
+  (8(a), HUBZone, SDVOSB, VOSB, WOSB, EDWOSB), the 8(a) program exit date, and a
+  small-business self-certification, all round-tripping through the shareable `?p=` link.
+  Self-attested and used only to check set-aside eligibility — never verified.
+- **The eligibility lane** — a categorical gate / warn / unknown / clear verdict rendered
+  ABOVE the pursuit score on Contract Detail, plus a prime-path tally strip on Your Company.
+  The hard gate fires only on a live, High-confidence linked notice carrying a set-aside
+  code; a historical FPDS code only ever cautions (the contracting officer decides the
+  recompete's strategy fresh). Blank is "not reported", never "unrestricted"; every failing
+  verdict carries the teaming reframe. A label — it never moves the score.
+- **Evidence-contract capture brief** — the Detail download is now an 8-section,
+  deterministic, source-linked brief (WHY NOW / THE SIGNALS / WHO HOLDS IT / THE OFFICE /
+  PRICE RANGE / ELIGIBILITY / WHAT WE CAN'T KNOW / SOURCES) rendered from an enumerated
+  evidence contract: columns outside the contract are unreachable by construction, refusing
+  bases render refusals (never numbers), and every value is escaped. System font stack,
+  self-contained CSS, print-ready.
+- **Freshness surfaces** — the header band now reads `as of {date} · {N}d old` in both live
+  and sample modes.
+
+### Removed
+- The 2026-07-03 in-app capture brief (three inlined template functions, including a
+  Google-Fonts `@import` inside a supposedly deterministic artifact). One renderer remains.
+
+### Changed
+- Lapsed/bridge-watch copy is single-sourced from the outcome-label taxonomy (strings
+  byte-identical; drift is now structurally impossible).
+
 ## [2.3.1] — 2026-07-15 — Clean-history republish, provenance manifest, PSC catalog
 
 ### Security
