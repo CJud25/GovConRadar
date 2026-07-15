@@ -1,7 +1,7 @@
 # GovCon Recompete Radar
 
 [![CI](https://github.com/CJud25/GovConRadar/actions/workflows/ci.yml/badge.svg)](https://github.com/CJud25/GovConRadar/actions/workflows/ci.yml)
-&nbsp;·&nbsp; **85 data-integrity checks · all views boot** &nbsp;·&nbsp; **Scorer v2.0.0** &nbsp;·&nbsp; Python 3.10+ &nbsp;·&nbsp; [Live demo → cjudk25.streamlit.app](https://cjudk25.streamlit.app)
+&nbsp;·&nbsp; **85 data-integrity checks · all views boot** &nbsp;·&nbsp; **Scorer v2.0.0** &nbsp;·&nbsp; Python 3.10+ &nbsp;·&nbsp; [Live demo → govconradar.streamlit.app](https://govconradar.streamlit.app)
 
 **Find the DoD cyber/IT contracts coming up for recompete — and know which numbers you can defend.**
 

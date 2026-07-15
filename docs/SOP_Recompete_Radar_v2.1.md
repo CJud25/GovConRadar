@@ -309,7 +309,7 @@ git push
 Streamlit Cloud auto-redeploys on push. If the app was stopped, perform a manual **Reboot** in
 the Streamlit dashboard (owner-only action).
 
-- Confirm the live app at `cjudk25.streamlit.app` shows the new **PUBLIC DATA SNAPSHOT** badge
+- Confirm the live app at `govconradar.streamlit.app` shows the new **PUBLIC DATA SNAPSHOT** badge
   and the snapshot-freshness banner reflecting `<YYYY-MM-DD>`.
 - Note: the app can be **viewer-restricted** (anonymous requests 303 to Streamlit auth)
   independent of repo visibility — set "Who can view" for a public portfolio link.
