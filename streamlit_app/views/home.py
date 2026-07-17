@@ -93,7 +93,7 @@ def main():
         {"label": "Tier 1 — Pursue Now", "value": f"{tier1:,}", "accent": theme.REDORANGE,
          "sub": f"{tier1_12_count:,} in next 12 mo · {tier1_expired:,} already expired"},
         {"label": "Actionable value ≤ 12 mo", "value": theme.usd_short(actionable_12), "accent": theme.STEEL,
-         "sub": f"{int(exp_12_mask.sum()):,} contracts expiring"},
+         "sub": f"{int(exp_12_mask.sum()):,} contracts expiring · all tiers"},
         {"label": "Median runway", "value": median_label, "accent": theme.AMBER,
          "sub": "median time to expiration"},
         {"label": "Top-5 incumbent share", "value": f"{top5_share:.0f}%", "accent": theme.NAVY,
