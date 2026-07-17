@@ -1,7 +1,7 @@
 # GovCon Recompete Radar
 
 [![CI](https://github.com/CJud25/GovConRadar/actions/workflows/ci.yml/badge.svg)](https://github.com/CJud25/GovConRadar/actions/workflows/ci.yml)
-&nbsp;·&nbsp; **94 data-integrity checks · all views boot** &nbsp;·&nbsp; **Scorer v2.0.0** &nbsp;·&nbsp; Python 3.10+ &nbsp;·&nbsp; [Live demo → govconradar.streamlit.app](https://govconradar.streamlit.app)
+&nbsp;·&nbsp; **118 data-integrity checks · all views boot** &nbsp;·&nbsp; **Scorer v2.0.0** &nbsp;·&nbsp; Python 3.10+ &nbsp;·&nbsp; [Live demo → govconradar.streamlit.app](https://govconradar.streamlit.app)
 
 **Find the DoD cyber/IT contracts coming up for recompete — and know which numbers you can defend.**
 
@@ -52,6 +52,12 @@ data-quality score went from a fake **100.0** to an honest **55.1**. See [`CHANG
   inventing a number. Competitor bids are never public, and the tool says so.
 - **Contract-vehicle rollup** — up to 1,211 identical-looking task orders under one IDV collapse to a
   single vehicle row you can actually pursue.
+- **Forward signals beside the score, never inside it** — an **Incumbent Displacement** lane
+  ("k of N observed signals": bridge extension, termination, large deobligation,
+  lapsed-with-no-visible-successor, sole offer, incumbent size-standard shift) with its own sort
+  lens on the chase list, and a gate/warn/unknown/clear **"Prime path"** eligibility verdict
+  beside every score — with a hard ⛔ warning on Contract Detail when a live set-aside
+  solicitation excludes priming. `pursuit_score` stays byte-identical — validator-pinned.
 - **Auditable by construction** — `scripts/validate_data.py` re-derives every KPI from the fact tables
   and proves the app's live re-score reproduces the baked data (max diff 0.0). It runs in CI.
 
@@ -67,7 +73,7 @@ precision publish only after hand-labeled samples cross the pinned thresholds in
 disclosed top-50 sample), always with their n and a 95% Wilson interval. Until then the page reads
 "not yet measured" — that refusal is the feature.
 
-**No recall number is published, ever.** Only ~1 in 8 candidates links to a live SAM.gov notice, so
+**No recall number is published, ever.** Only ~4% of candidates link to a live SAM.gov notice, so
 the set of recompetes this radar *missed* is structurally unobservable in public data; any recall
 claim would be fiction.
 
@@ -94,11 +100,11 @@ py -m pip install -r requirements-dev.txt
 # no pipeline, data download, or API key needed.
 py -m streamlit run streamlit_app/app.py
 
-# Optional: pull the FULL snapshot for local full-data dev (not committed; ~44 MB)
+# Optional: pull the FULL snapshot for local full-data dev (not committed; ~48 MB)
 py scripts/download_data.py            # -> data/powerbi/  (then the app reads "live")
 
 # Verify the shipped bundle — the exact gates CI runs on every push
-py scripts/validate_data.py --sample   # 94 data-integrity checks over data/sample/
+py scripts/validate_data.py --sample   # 118 data-integrity checks over data/sample/
 py scripts/smoke_app.py                # boots every app view on the sample
 
 # The full snapshot (if pulled above) validates with the same contract
@@ -111,8 +117,8 @@ py scripts/validate_data.py            # data/powerbi/  (SKIPs if absent)
 synthetic bundle). The full snapshot is **not committed** as part of the data diet — fetch it with
 `py scripts/download_data.py`; a fresh clone runs on `data/sample/`.
 
-The full ETL pipeline (`py run_pipeline.py`, in the private source repo — not shipped here) needs local
-bulk CSV exports; the app and validators run without it against the shipped star schema.
+The full ETL pipeline (`py run_pipeline.py`) needs local bulk CSV exports; the app and validators run
+without it against the shipped star schema.
 
 ## Query the data model in SQL
 
@@ -172,18 +178,18 @@ ORDER BY candidates_next_12mo DESC, pipeline_obligated_musd DESC;
 
 ```text
 $ RADAR_DATA_DIR=data/sample py run_sql.py sql/01_recompete_expiring_next_12mo_by_naics.sql
-[run_sql] 01_recompete_expiring_next_12mo_by_naics.sql  |  data=.../data/sample  (mode=custom)  |  16 tables registered
+[run_sql] 01_recompete_expiring_next_12mo_by_naics.sql  |  data=.../data/sample  (mode=custom)  |  17 tables registered
 ┌────────────┬────────────────────────────────────────────────────────────────────────────────────────┬──────────────────────┬─────────────────────────┐
 │ naics_code │                                   naics_description                                    │ candidates_next_12mo │ pipeline_obligated_musd │
 │  varchar   │                                        varchar                                         │        int64         │         double          │
 ├────────────┼────────────────────────────────────────────────────────────────────────────────────────┼──────────────────────┼─────────────────────────┤
-│ 541519     │ Other Computer Related Services                                                        │                  174 │                 1035.82 │
-│ 541512     │ Computer Systems Design Services                                                       │                  115 │                 1037.95 │
-│ 541511     │ Custom Computer Programming Services                                                   │                   57 │                   510.8 │
-│ 518210     │ Computing Infrastructure Providers, Data Processing, Web Hosting, and Related Services │                   21 │                   93.92 │
-│ 541330     │ Engineering Services                                                                   │                   18 │                  361.05 │
-│ 541513     │ Computer Facilities Management Services                                                │                   14 │                  166.59 │
-│ 541611     │ Administrative Management and General Management Consulting Services                   │                    4 │                   33.39 │
+│ 541519     │ Other Computer Related Services                                                        │                  178 │                  996.53 │
+│ 541512     │ Computer Systems Design Services                                                       │                  125 │                 1189.72 │
+│ 541511     │ Custom Computer Programming Services                                                   │                   55 │                  434.49 │
+│ 518210     │ Computing Infrastructure Providers, Data Processing, Web Hosting, and Related Services │                   22 │                  546.03 │
+│ 541513     │ Computer Facilities Management Services                                                │                   19 │                  174.19 │
+│ 541330     │ Engineering Services                                                                   │                   16 │                  334.02 │
+│ 541611     │ Administrative Management and General Management Consulting Services                   │                    4 │                   31.09 │
 └────────────┴────────────────────────────────────────────────────────────────────────────────────────┴──────────────────────┴─────────────────────────┘
 ```
 
@@ -195,21 +201,56 @@ obligation), while the 12-month expiry window is an **estimate** recomputed to t
 
 Each addition **refuses to guess** where the public data won't support a claim — the whole brand, made visible.
 
-**2.3.0 — "keep the mods"**: the pipeline now keeps each award's **modification history** instead of collapsing it away. Terminated contracts stop ghost-riding the forward pipeline (**Terminated (verify)** badge, `expiration_date_basis="terminated"`); new coverage-gated signals — mod velocity, ceiling-balloon, deobligation, bridge-extension, **successor-visible** (the recently-lapsed "bridge watch" lens), and an incumbent **size-determination shift** flag — each with a named basis and an unforgeable Unknown; plus a populated `fact_transactions` evidence table and a Sources Sought early-warning lane. Every mods-derived surface carries the disclosure: *"DoD FPDS reporting lags ~90 days; termination signals are ≥3 months old."*
+**2.4.0 → 2.8.0 — forward signals beside the score, never inside it** (2026-07-15/16):
+`pursuit_score`, the weights, and every tier are **byte-identical** across all five releases
+(validator-pinned) — each read below is a separate surface or ordering lens next to the number:
+
+- **Incumbent Displacement lane** — "k of N observed signals" over six public forward signals
+  (bridge extension, termination on record, large deobligation, lapsed-with-no-visible-successor,
+  sole offer at the last competition, incumbent size-standard shift), surfaced as a Contract
+  Detail panel, a reason chip, a compact Explorer column, and a **sort lens** ("Displacement
+  signals, then score") on the chase list. An ordering choice, never a score change —
+  lane-unreadable rows sort last, never imputed to zero.
+- **Eligibility beside the score** — the score's `set_aside_fit` component rewards restricted
+  work regardless of who can prime it, so the real gate/warn/unknown/clear verdict now travels
+  with the number: a **"Prime path"** column beside Score in Explorer, and a hard ⛔ warning on
+  Contract Detail when a live set-aside solicitation excludes you as prime. A gate, not a score.
+- **Market concentration joined to the brief** — the capture brief's Office section reads the
+  buying component's incumbent concentration (the top incumbent's share of **attributed**
+  expiring obligated dollars — a dollar-share, not market power) or a named refusal where the
+  market is too thin to read.
+- **Honest link coverage** — the candidate→notice linker is now recency-gated (a recompete
+  notice posts near the incumbent's expiry, never years before it) and an award's own origin
+  solicitation can never pose as its successor. Established links dropped **4,163 → 1,311**
+  (~4% of 35,964 candidates) — less coverage, honestly linked. Link precision itself still
+  reads **"not yet measured"**: a bulk-fill guard now refuses mechanically-filled label sheets,
+  and outcome labels are drawn at contract-vehicle grain over a **FY2019–FY2021** cohort old
+  enough for recompete outcomes to actually be observable.
+
+**2.3.0 — "keep the mods"** (see [`CHANGELOG.md`](CHANGELOG.md) and `docs/DATA_DICTIONARY.md`):
+the pipeline now keeps each award's **modification history** instead of collapsing it away.
+Terminated contracts stop ghost-riding the forward pipeline (**Terminated (verify)** badge,
+`expiration_date_basis="terminated"`); new coverage-gated signals — mod velocity,
+ceiling-balloon, deobligation, bridge-extension, **successor-visible** (the recently-lapsed
+"bridge watch" lens), and an incumbent **size-determination shift** flag — each with a named
+basis and an unforgeable Unknown; plus a populated `fact_transactions` evidence table, digest
+delivery (email/webhook), a CRM lead export, and a Sources Sought early-warning lane. Every
+mods-derived surface carries the disclosure: *"DoD FPDS reporting lags ~90 days; termination
+signals are ≥3 months old."*
 
 | | |
 |---|---|
 | ![Obligation pace](docs/screenshots/detail_obligation_pace.png) | ![Reason codes](docs/screenshots/detail_reason_codes.png) |
 | **Obligation pace** — how much of a contract's ceiling has been obligated ("Ceiling obligated") vs. how much of its period of performance has elapsed ("Clock elapsed"). A *descriptive* read that reflects the **funding profile** — **not** spend, and **not** a recompete forecast; on most orders it says "not measurable" rather than guess. | **Reason codes** — the 8-component score as a chip row stamped **● fact · ◐ estimate · ○ not reported**. A blank set-aside shows "○ not reported (blank is not the same as full and open)" instead of pretending it's full-and-open — the refusal made visible. |
 | ![Incumbent concentration](docs/screenshots/incumbents_concentration.png) | ![Explorer — new columns](docs/screenshots/explorer_new_columns.png) |
-| **Incumbent concentration** — the top incumbent's share of expiring obligated dollars per DoD component; markets too thin to read show as **"Unknown."** A descriptive read of this pipeline slice — **not** market share, market power, or contestability. | **Pipeline Explorer** now carries **Oblig. pace** and **Why** columns; the pace reads "—" wherever an order can't be honestly paced (most of them). |
+| **Incumbent concentration** — the top incumbent's share of expiring obligated dollars per DoD component; markets too thin to read show as **"Unknown."** A descriptive read of this pipeline slice — **not** market share, market power, or contestability. | **Pipeline Explorer** now carries **Oblig. pace**, **Displacement** (k of N), and **Prime path** columns beside the Score, plus the *"Displacement signals, then score"* ordering lens; any read the data can't support renders "—" or Unknown, never a guess. |
 
 ## Screens
 
 | | |
 |---|---|
 | ![Explorer — vehicle rollup](docs/screenshots/explorer_vehicles.png) | ![Contract Detail — price range](docs/screenshots/detail_price_range.png) |
-| Explorer: the trusted default view (excluded rows disclosed, one click from auditable) with the contract-vehicle rollup on | Contract Detail: the price range refusing to guess |
+| Explorer with the contract-vehicle rollup on — task orders collapse under their IDV into vehicle rows, the displacement sort lens above | Contract Detail: the displacement lane ("2 of 5 readable signals fired") above a Competitive Price Range built from real *won* comparables |
 | ![Home — scored as your company](docs/screenshots/home_custom.png) | ![Contract Detail — the refusal state](docs/screenshots/detail_refusal.png) |
 | Score-as-your-company: the board re-scored live for a custom profile (Tier-1 35 → 31) | The refusal state: below the comparables floor the range says so |
 | ![Your Company — the profile form](docs/screenshots/company_form.png) | ![Methodology — weights and tiers](docs/screenshots/methodology.png) |
@@ -237,17 +278,9 @@ py scripts/validate_data.py && py scripts/validate_data.py --sample
 
 It fails loudly on any of: scorer non-parity, a stale record in Tiers 1–4, an expired row in a forward
 bucket, a KPI that doesn't tie to the facts, an unflagged garbled title, a `title_display` that leaks a
-raw record, a schema violation, or a snapshot/version mismatch.
-
-**What this validator proves — and what it can't.** `validate_data.py` proves the published
-bundle is *internally honest*: every KPI re-derives from the shipped fact tables, the app's live
-re-score reproduces the baked scores exactly (max diff 0.0), quarantine and Unknown rules hold,
-and no excluded column or personnel-marked title ships. It does **not** prove that the pipeline
-captured every relevant DoD contract (extraction completeness), that USAspending/FPDS records are
-themselves correct or current (source accuracy — DoD FPDS reporting lags ~90 days), or that
-estimates like recompete windows and pursuit scores are predictively accurate (the Methodology
-page states what each estimate is based on). It checks the copy you have, not the world it
-describes.
+raw record, a baked lane read (burn pace, displacement, concentration, trust metrics) that disagrees
+with a fresh recompute or forges an Unknown, an established notice link posted outside the recency
+window, a schema violation, or a snapshot/version mismatch.
 
 ## Scope
 

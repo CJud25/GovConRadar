@@ -17,6 +17,11 @@ by its ``10000/n`` floor. Config priors are injected as a ``Mapping`` (callers p
 it under strict mypy cannot drag untyped code into the gate. Pure and deterministic: no I/O, no
 clock, no RNG. Mirrors the house idiom of ``src/scoring/eligibility.py``.
 
+Two consumers, one rule: the Incumbent Landscape view computes the read live, and
+:func:`annotate_agency_concentration` (F4) bakes the same read per-component onto
+``dim_agency`` (the ``CONCENTRATION_COLUMNS``) so the capture brief's Office section can
+show the buying office's concentration — double-gated Unknown riding through unchanged.
+
 Grep removal token: ``hhi_concentration``.
 """
 
@@ -28,6 +33,23 @@ from dataclasses import dataclass
 import pandas as pd
 
 _INPUT_COLUMNS: tuple[str, ...] = ("subagency", "incumbent_uei", "total_obligated_amount")
+
+# The per-component columns annotate_agency_concentration bakes onto dim_agency (F4) —
+# the same market-grain read, joined to the grain the capture brief's Office section
+# actually consumes. Baked-grain equivalence (unforgeable Unknown, pinned by tests and
+# the validator): ``basis == "observed" <=> top_share present <=> reason empty``;
+# ``concentration_n_ueis`` is ALWAYS published (a coverage fact, the
+# displacement_signals_read pattern).
+CONCENTRATION_COLUMNS: tuple[str, ...] = (
+    "concentration_top_share",
+    "concentration_n_ueis",
+    "concentration_basis",
+    "concentration_reason",
+)
+CONCENTRATION_BASES: tuple[str, ...] = ("observed", "insufficient")
+# The refusal reason for a component with no reportable candidate rows at all — such a
+# component never reaches compute_hhi_concentration (there is no market to assess).
+NO_REPORTABLE_REASON = "no reportable candidate rows for this component"
 
 
 @dataclass(frozen=True)
@@ -113,3 +135,52 @@ def compute_hhi_concentration(reportable: pd.DataFrame, cfg: Mapping[str, float]
         _assess_market(str(market), grp, min_ueis, max_unknown_share)
         for market, grp in df.groupby("subagency", sort=True)
     ]
+
+
+def annotate_agency_concentration(
+    dim_agency: pd.DataFrame, reportable: pd.DataFrame, cfg: Mapping[str, float]
+) -> pd.DataFrame:
+    """Return a COPY of ``dim_agency`` with the four :data:`CONCENTRATION_COLUMNS`
+    ASSIGNED (overwritten, not appended) — drop-then-rederive idempotent by
+    construction, the ``annotate_displacement`` pattern. Joins
+    :func:`compute_hhi_concentration` (computed over the caller's REPORTABLE candidate
+    frame — Data Gap excluded, the same pool the Incumbent Landscape view reads) onto
+    each component row by ``subagency``. Both honesty gates ride through unchanged; a
+    component with no reportable rows (or a missing/blank ``subagency``) is
+    ``insufficient`` with :data:`NO_REPORTABLE_REASON` — never an imputed number. The
+    observed row's empty ``concentration_reason`` round-trips CSV as NaN; readers must
+    treat blank-or-NaN as "no refusal", never as a forged refusal (the validator's
+    equivalence does). Preserves index, row order, and every existing column; drops and
+    filters nothing. Deterministic: no clock, no RNG, no I/O."""
+    markets = {m.market: m for m in compute_hhi_concentration(reportable, cfg)}
+    out = dim_agency.copy()
+    if "subagency" in out.columns:
+        subs = [str(v) for v in out["subagency"]]
+    else:
+        subs = [""] * len(out)
+    shares: list[float | None] = []
+    n_ueis: list[int] = []
+    bases: list[str] = []
+    reasons: list[str] = []
+    for sub in subs:
+        m = markets.get(sub)
+        if m is None:
+            shares.append(None)
+            n_ueis.append(0)
+            bases.append("insufficient")
+            reasons.append(NO_REPORTABLE_REASON)
+        elif m.assessable:
+            shares.append(m.top_share)
+            n_ueis.append(m.n_ueis)
+            bases.append("observed")
+            reasons.append("")
+        else:
+            shares.append(None)
+            n_ueis.append(m.n_ueis)
+            bases.append("insufficient")
+            reasons.append(m.reason)
+    out["concentration_top_share"] = pd.Series(shares, index=out.index, dtype="float64")
+    out["concentration_n_ueis"] = pd.Series(n_ueis, index=out.index, dtype="Int64")
+    out["concentration_basis"] = pd.Series(bases, index=out.index, dtype="object")
+    out["concentration_reason"] = pd.Series(reasons, index=out.index, dtype="object")
+    return out

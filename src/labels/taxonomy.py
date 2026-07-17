@@ -44,7 +44,10 @@ LABEL_CONFIDENCE_GRADES: tuple[str, ...] = ("high", "medium", "low")
 
 LINK_LABEL_VALUES: tuple[str, ...] = ("correct", "incorrect", "unsure")
 
-SAMPLE_SETS: tuple[str, ...] = ("stratified", "top50", "both")
+# "carried" = a labeled case migrated from a prior sample (e.g. the order->vehicle grain
+# change) that the current random draw did not re-select; kept so a filled label is never
+# lost, but flagged so it never contaminates the random stratified/top50 rates.
+SAMPLE_SETS: tuple[str, ...] = ("stratified", "top50", "both", "carried")
 
 INCUMBENT_RETAINED_VALUES: tuple[str, ...] = ("yes", "no", "unclear")
 
@@ -76,7 +79,7 @@ LINK_LABEL_COLUMNS: tuple[str, ...] = (
 # post-unmask observation, never an input to selection or adjudication.
 OUTCOME_LABEL_COLUMNS: tuple[str, ...] = (
     "case_id",  # "O-{candidate_id}", unique
-    "sample_set",  # stratified | top50 | both
+    "sample_set",  # stratified | top50 | both | carried
     "sampled_snapshot_date",
     "candidate_id",
     "predecessor_piid",

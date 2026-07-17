@@ -29,6 +29,8 @@ _mods = _load("mods_signal.yaml")
 _reasons = _load("reason_codes.yaml")
 _hhi = _load("hhi_concentration.yaml")
 _measurement = _load("measurement.yaml")
+_displacement = _load("incumbent_displacement.yaml")
+_opportunity_linking = _load("opportunity_linking.yaml")
 
 # ─── SEARCH SCOPE / NAICS ─────────────────────────────────────────────────────
 NAICS_SEED = {str(k): v for k, v in _sources["naics_seed"].items()}
@@ -104,6 +106,20 @@ assert EXPIRATION_BASIS_POLICY in EXPIRATION_BASIS_POLICIES, (
     f"expiration_basis_policy must be one of {EXPIRATION_BASIS_POLICIES}, got {EXPIRATION_BASIS_POLICY!r}"
 )
 
+# ─── OPPORTUNITY-LINK RECENCY GATE (asserted priors — see config/opportunity_linking.yaml) ───
+# Consumed by transform.opportunity_linking: an establishing candidate->notice match is
+# rejected when both dates are known and the notice's posted_date falls outside
+# [expiration - before, expiration + after] — a recompete solicitation appears near/after
+# the incumbent's expiry, never years before it. STRUCTURAL asserts only (positivity);
+# the window VALUES are documented priors in the yaml.
+_recency = _opportunity_linking["recency_window"]
+OPPORTUNITY_LINKING = {
+    "recency_months_before": int(_recency["max_months_before_expiry"]),
+    "recency_months_after": int(_recency["max_months_after_expiry"]),
+}
+assert OPPORTUNITY_LINKING["recency_months_before"] >= 1, "linker: max_months_before_expiry >= 1"
+assert OPPORTUNITY_LINKING["recency_months_after"] >= 0, "linker: max_months_after_expiry >= 0"
+
 # ─── SUCCESSOR-VISIBLE PROXY (recompete follow-on label — see config/recompete.yaml) ───
 # Injected whole into scoring.successor_proxy.annotate_successor_visible as a Mapping (the
 # module re-validates on use). STRUCTURAL asserts only: min_cell_awards >= 2 keeps the
@@ -126,6 +142,9 @@ def validate_measurement(m: dict) -> dict:
         "link_labels": {
             "target_per_tier": int(m["link_labels"]["target_per_tier"]),
             "min_labels_per_tier": int(m["link_labels"]["min_labels_per_tier"]),
+            # G4 bulk-fill override (default False): must be an explicit bool, never coerced —
+            # trust_metrics.link_precision_rows refuses a single-date/0-note/0-unsure tier without it.
+            "allow_bulk_fill": m["link_labels"].get("allow_bulk_fill", False),
         },
         "outcome_labels": {
             "cohort_fy_start": int(m["outcome_labels"]["cohort_fy_start"]),
@@ -133,6 +152,9 @@ def validate_measurement(m: dict) -> dict:
             "stratified_n": int(m["outcome_labels"]["stratified_n"]),
             "top_k": int(m["outcome_labels"]["top_k"]),
             "min_determinable_for_precision": int(m["outcome_labels"]["min_determinable_for_precision"]),
+            # Candidate grain for the outcome cohort (default "order" keeps legacy behavior).
+            "grain": str(m["outcome_labels"].get("grain", "order")).strip().lower(),
+            "idv_attributes": str(m["outcome_labels"].get("idv_attributes", "data/reference/idv_attributes.csv")),
         },
         "lead_time": {"min_link_confidence": str(m["lead_time"]["min_link_confidence"])},
         "rank_stability": {
@@ -144,10 +166,14 @@ def validate_measurement(m: dict) -> dict:
         "wilson_z": float(m["wilson_z"]),
     }
     assert out["link_labels"]["min_labels_per_tier"] >= 30, "measurement: min_labels_per_tier >= 30"
+    assert isinstance(out["link_labels"]["allow_bulk_fill"], bool), \
+        "measurement: allow_bulk_fill is a bool (the bulk-fill override is explicit, never coerced)"
     assert out["outcome_labels"]["top_k"] == 50, \
         "measurement: top_k == 50 (precision@10 is structurally impossible by design)"
     assert 40 <= out["outcome_labels"]["min_determinable_for_precision"] <= out["outcome_labels"]["top_k"], \
         "measurement: 40 <= min_determinable_for_precision <= top_k"
+    assert out["outcome_labels"]["grain"] in ("vehicle", "order"), \
+        "measurement: outcome_labels.grain in (vehicle, order)"
     assert out["rank_stability"]["min_snapshots"] >= 3, "measurement: min_snapshots >= 3"
     assert out["lead_time"]["min_link_confidence"] in ("High", "Medium"), \
         "measurement: min_link_confidence in (High, Medium)"
@@ -250,13 +276,27 @@ _REASON_SIGNALS = {
     "data_quality",
     "data_gap_code_prefix",
     "data_gap_short_title",
+    "displacement",
     "empty_state",
-}  # 18 signals (burn chip CUT per Corrections v2 C2.1; competition CUT per Spec 2 §12)
+}  # 19 signals (burn chip CUT per Corrections v2 C2.1; competition CUT per Spec 2 §12; displacement lane F1)
 # STRUCTURAL asserts only — the single source of truth for the priority projection.
 assert set(REASON_CODES["priority"]) == _REASON_SIGNALS, "reason_codes: priority must name every signal exactly once"
 assert len(set(REASON_CODES["priority"].values())) == len(REASON_CODES["priority"]), (
     "reason_codes: priority ranks must be unique"
 )
+
+# ─── INCUMBENT-DISPLACEMENT LANE (asserted priors — see config/incumbent_displacement.yaml) ───
+# Passed whole to scoring.incumbent_displacement.load_displacement_config (the comprehensive
+# validator). The offers junk-count guards are threaded VERBATIM from reason_codes.yaml's
+# thresholds — one yaml home for them, so the lane's sole-offer read and the incumbent_lock
+# chip can never disagree on what a junk offer count is. STRUCTURAL asserts only.
+INCUMBENT_DISPLACEMENT = {
+    "min_signals_read": int(_displacement["min_signals_read"]),
+    "offers_sentinels": [int(x) for x in _rt["offers_sentinels"]],
+    "offers_max_plausible": int(_rt["offers_max_plausible"]),
+}
+assert 1 <= INCUMBENT_DISPLACEMENT["min_signals_read"] <= 6, "displacement: 1 <= min_signals_read <= 6"
+assert INCUMBENT_DISPLACEMENT["offers_max_plausible"] >= 1, "displacement: offers_max_plausible >= 1"
 
 # ─── INCUMBENT CONCENTRATION (descriptive) — asserted priors, see config/hhi_concentration.yaml ───
 # Corrections v2 (Option A): a top-incumbent obligated-dollar-SHARE read — NO HHI number, NO

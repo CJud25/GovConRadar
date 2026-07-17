@@ -64,6 +64,12 @@ EVIDENCE_CONTRACT: Mapping[str, tuple[str, ...]] = {
         "ceiling_growth_ratio",
         "mods_basis",
         "successor_visible_basis",
+        "displacement_signal_count",
+        "displacement_signals_read",
+        "displacement_signals",
+        "displacement_unread",
+        "displacement_band",
+        "displacement_basis",
         "ptw_low",
         "ptw_market_median",
         "ptw_high",
@@ -85,6 +91,13 @@ EVIDENCE_CONTRACT: Mapping[str, tuple[str, ...]] = {
         "expiring_contract_count_12_months",
         "expiring_pipeline_value",
         "average_award_size",
+        # F4 — the per-component market-concentration join (scoring.market_concentration
+        # .annotate_agency_concentration): double-gated Unknown rides through; missing
+        # columns on an older bundle simply never reach the renderer.
+        "concentration_top_share",
+        "concentration_n_ueis",
+        "concentration_basis",
+        "concentration_reason",
     ),
     "fact_opportunity_notices": (
         "notice_id",

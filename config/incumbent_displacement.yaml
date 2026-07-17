@@ -1,0 +1,15 @@
+# config/incumbent_displacement.yaml — ASSERTED PRIORS for the categorical
+# incumbent-displacement lane (src/scoring/incumbent_displacement.py). These are editorial
+# priors, NOT fitted coefficients — the lane is a decision-table LABEL ("k of n readable
+# signals fired") and is never blended into pursuit_score or any tier.
+#
+# The sole-offer signal's junk-count guards (offers_sentinels / offers_max_plausible) are
+# NOT here — they live once in config/reason_codes.yaml `thresholds:` and utils.config
+# threads the same values into INCUMBENT_DISPLACEMENT, so the two readers of
+# number_of_offers_received can never drift.
+
+# Readable signals (of the 6) below this gate the whole lane to `insufficient`
+# (band not_applicable, count None) — Unknown is unforgeable. 3 keeps a bare
+# status+offers-only bundle (e.g. the legacy synthetic sample, 2 readable) honest-gated
+# while the full mods-baked snapshot (5-6 readable) always reads.
+min_signals_read: 3

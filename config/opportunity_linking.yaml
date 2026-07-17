@@ -1,0 +1,25 @@
+# opportunity_linking.yaml — asserted priors for the candidate -> notice linker's
+# RECENCY GATE (transform.opportunity_linking).
+#
+# Why this gate exists: a recompete solicitation is shaped and posted AROUND the
+# incumbent award's expiration — market research (Sources Sought / RFI /
+# pre-solicitation) typically starts 12-24 months out on large programs, and a
+# follow-on can still post months AFTER a lapse (gap-and-bridge situations). A
+# notice posted YEARS before an award's own end cannot be that award's recompete
+# solicitation: the 2026-07 audit found a single 2018 "IT SUPPORT SERVICES"
+# notice matched as the "recompete" of 70 of 120 sampled 2025-ending awards,
+# purely on title similarity.
+#
+# The gate rejects an otherwise-establishing match when BOTH dates are known and
+# the notice's posted_date falls outside
+#   [anchor - max_months_before_expiry, anchor + max_months_after_expiry]
+# around EVERY known anchor — the policy-selected expiration AND the current
+# period end (inside EITHER window accepts, so an early recompete posted near
+# current_end_date after options go unexercised still links). A separate origin
+# gate rejects a match posted before the award's own pop_start_date — an award's
+# origin solicitation is never its successor. A missing/unparseable date on
+# either side never gates — a date we do not have cannot prove a violation
+# (unchanged legacy behavior for undated rows).
+recency_window:
+  max_months_before_expiry: 24  # shaping lead: Sources Sought / pre-solicitation up to ~2 years before expiry
+  max_months_after_expiry: 12   # late follow-on: a recompete can post up to ~1 year after a lapse (bridge coverage)

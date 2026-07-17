@@ -226,8 +226,11 @@ else:
             _stability_tail = "**Rank stability** publishes at 3+ comparable snapshots."
         st.markdown(
             "**Outcome precision (top-50):** not yet measured. A stratified sample of ~150 "
-            "FY2023–FY2024 potential-end contracts plus the disclosed top-50 are being "
-            "hand-labeled awardee-blind against notice archives (`docs/labeling_protocol.md`). "
+            "units whose recompete clock ran out in FY2023–FY2024 — standalone contracts, "
+            "single-award task-order sequences rolled up to one parent vehicle (clock = its "
+            "ordering-period end), multiple-award orders kept at order grain — plus the "
+            "disclosed top-50 are being hand-labeled awardee-blind against notice archives "
+            "(`docs/labeling_protocol.md`). "
             "The number publishes at ≥40 determinable labels of the top-50, with its n and "
             "95% Wilson interval. Undeterminable and out-of-scope rates publish immediately "
             "as labeling progresses — refusals are always publishable. " + _stability_tail

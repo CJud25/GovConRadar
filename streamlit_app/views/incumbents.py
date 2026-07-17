@@ -77,6 +77,12 @@ with tab_inc:
                 unsafe_allow_html=True,
             )
 
+    # TODO(F1 displacement lane): the candidate-grain displacement_* columns are baked on
+    # fact_recompete_candidates (src/scoring/incumbent_displacement.py) and surfaced on the
+    # Contract Detail page. Rolling them up per VENDOR here (e.g. "3 of this incumbent's 7
+    # contracts show displacement signals") needs a deliberate aggregation design — a naive
+    # sum double-counts correlated signals across task orders under one vehicle — so it is
+    # deferred rather than wired half-honestly. Per-contract reads live on the Detail page.
     cols = [c for c in ["title_display", "subagency", "selected_expiration_date", "total_obligated_amount",
                         "pursuit_score", "priority_tier"] if c in vdf.columns]
     st.dataframe(vdf[cols], hide_index=True, width="stretch",

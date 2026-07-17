@@ -8,10 +8,10 @@ link_unsure_rate_medium,,0,,,not_yet_measured,no Medium-tier verdicts filled yet
 link_precision_low,,0,,,not_yet_measured,not yet measured — 0 of the >=30 labels the Low tier needs before a precision number publishes,app,2026-07-15
 link_false_link_rate_low,,0,,,not_yet_measured,not yet measured — 0 of the >=30 labels the Low tier needs before a precision number publishes,app,2026-07-15
 link_unsure_rate_low,,0,,,not_yet_measured,no Low-tier verdicts filled yet,app,2026-07-15
-precision_at_50,,0,,,not_yet_measured,not yet measured — 0 of the >=40 determinable outcome labels the disclosed top-50 sample needs before a precision number publishes,app,2026-07-15
-outcome_undeterminable_rate,,0,,,not_yet_measured,no top-50 outcome verdicts filled yet — a share of nothing is not a number,app,2026-07-15
-outcome_out_of_scope_rate,,0,,,not_yet_measured,no top-50 outcome verdicts filled yet — a share of nothing is not a number,app,2026-07-15
-outcome_labeled_n,0.0,50,,,published,0 of 50 disclosed top-50 worksheet rows labeled (progress counter),app,2026-07-15
+precision_at_50,,5,,,not_yet_measured,not yet measured — 5 of the >=40 determinable outcome labels the disclosed top-50 sample needs before a precision number publishes,app,2026-07-15
+outcome_undeterminable_rate,0.9,50,,,published,share of filled top-50 outcome labels judged undeterminable from public data — refusals are always publishable,app,2026-07-15
+outcome_out_of_scope_rate,0.0,50,,,published,share of filled top-50 outcome labels whose successor sits outside this dataset's scope (e.g. assisted acquisition) — the work continued where our window can't see,app,2026-07-15
+outcome_labeled_n,50.0,50,,,published,50 of 50 disclosed top-50 worksheet rows labeled (progress counter),app,2026-07-15
 ptw_abstention_share,0.001696140585029474,35964,,,published,"61 of 35,964 candidates where ptw_basis = insufficient — the estimator refused rather than guessed",app,2026-07-15
 burn_abstention_share,0.944166388610833,35964,,,published,"33,956 of 35,964 candidates where burn_basis = insufficient — the estimator refused rather than guessed",app,2026-07-15
 successor_abstention_share,0.015126237348459571,35964,,,published,"544 of 35,964 candidates where successor_visible_basis = insufficient_cell — the estimator refused rather than guessed",app,2026-07-15

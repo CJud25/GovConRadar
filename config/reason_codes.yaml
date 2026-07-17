@@ -11,6 +11,7 @@ priority:                         # signal code -> rank (lower shown first); MUS
   data_gap_end_date: 1
   data_gap_stale: 2
   incumbent_lock: 10
+  displacement: 12
   set_aside: 15
   urgency: 20
   expired_grace: 22
@@ -40,7 +41,7 @@ templates:                        # one per (signal, basis) case; {placeholders}
   # a fabricated number). No template `text` may start with an ASCII formula char (= + - @).
   incumbent_lock:         "Sole bid on a competed award"
   set_aside_restricted:   "Restricted set-aside: {code}"
-  set_aside_none:         "Full and open (set-aside coded NONE)"
+  set_aside_none:         "No set-aside (coded NONE) - unrestricted pool"
   set_aside_missing:      "Set-aside not reported (blank is not the same as full and open)"
   urgency_near:           "Expiring within 6 months ({date}, T-{days}d)"
   urgency_soon:           "Expiring within a year ({date}, T-{days}d)"
@@ -71,6 +72,8 @@ templates:                        # one per (signal, basis) case; {placeholders}
   recompete_missing:      "Recompete not classified"
   ptw_available:          "Price range estimable from comparable awards ({strength}, n={n})"
   ptw_missing:            "Not enough comparable awards to price"
+  displacement_signals:   "Displacement signals: {k} of {n} observed"
+  displacement_missing:   "Displacement signals unreadable - too few inputs on this record"
   idv_task_order:         "Task order under IDV {idv} - a sequence, not itself a recompete"
   data_quality_issue:     "Data-quality note: {note}"
   empty_state:            "No distinguishing signals - see the full breakdown below"

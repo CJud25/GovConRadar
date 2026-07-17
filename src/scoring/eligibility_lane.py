@@ -10,12 +10,13 @@ evidence path applies and translates the gate's verdict into surface language.
 
 Honesty posture:
   * Blank ≠ NONE. A blank FPDS set-aside code means "not reported" (unknown), while the NONE
-    family is an affirmative full-and-open record (clear). Most order-level records simply
-    don't report a set-aside.
+    family is an affirmative no-set-aside record (clear) — unrestricted, which is distinct
+    from "full and open" (that is the separate extent_competed field). Most order-level
+    records simply don't report a set-aside.
   * A live solicitation's NON-OPEN set-aside (notice path) outranks the expiring contract's
     historical code — the CO's published restriction is the real one. A notice reporting the
-    NONE family falls through to the historical path (an affirmed open competition restricts
-    nobody, so there is nothing to gate). Historical codes only ever *warn*.
+    NONE family falls through to the historical path (an affirmed absence of a set-aside
+    restricts nobody, so there is nothing to gate). Historical codes only ever *warn*.
   * No profile ⇒ unknown, never a guess. Certifications are self-attested and never verified.
   * Deterministic: injected ``today`` (8(a) exit dates), no I/O, no randomness.
 """
@@ -151,10 +152,10 @@ def lane_verdict(
         )
     label = _label(code, candidate.get("type_of_set_aside"))
     source = f"Source: historical FPDS record, set-aside code {code}."
-    if code in NONE_FAMILY:  # row 6 — affirmed full-and-open
+    if code in NONE_FAMILY:  # row 6 — affirmed no set-aside (unrestricted)
         return LaneVerdict(
             state="clear",
-            headline="No set-aside on the expiring contract — competed full-and-open",
+            headline="No set-aside on the expiring contract — unrestricted",
             detail=f"{source} The record affirms no set-aside was used. {_CONFIRM_SENTENCE}",
             teaming=None,
             basis="historical_fpds",

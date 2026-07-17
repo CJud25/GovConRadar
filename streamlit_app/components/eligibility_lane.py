@@ -27,15 +27,30 @@ from utils.coerce import nan_str
 
 __all__ = [
     "ATTESTED_NOTE",  # re-exported: views consume the lane ONLY through this adapter
+    "LANE_GRID_LABELS",
     "entity_from_profile",
     "lane_chip_html",
     "lane_counts",
     "lane_for",
+    "lane_states",
     "live_notice_code",
 ]
 
 # Lane state -> existing shell.py chip CSS (no new CSS).
 _CHIP_CLASS = {"gate": "chip-red", "warn": "chip-amber", "unknown": "chip-muted", "clear": "chip-steel"}
+
+# Lane state -> compact Explorer-grid cell (F3). Vocabulary matches the Company
+# strip's tally words (gated / cautions / clear / unknown); the glyphs sit
+# deliberately OUTSIDE the ● fact / ◐ estimate / ○ not-reported basis triple —
+# the lane is a categorical verdict over attested certifications, not a basis
+# read. Fixed strings (never data) and glyph-prefixed, so the cell is inert on
+# render and formula-safe on export.
+LANE_GRID_LABELS = {
+    "gate": "⛔ Gated",
+    "warn": "⚠ Caution",
+    "unknown": "— Unknown",
+    "clear": "✓ Clear",
+}
 
 
 def entity_from_profile(profile: Mapping[str, object]) -> EntityCerts | None:
@@ -128,10 +143,18 @@ def lane_chip_html(v: LaneVerdict) -> str:
     return f'<span class="chip {cls}">{html.escape(v.headline)}</span>'
 
 
+def lane_states(candidates: pd.DataFrame, entity: EntityCerts | None, today: date) -> list[str]:
+    """Historical-path-only lane state per row, in row order — the ``lane_counts`` read,
+    un-aggregated (powers the Explorer "Prime path" column, F3). No notice join at
+    5k-row scale — the certain-only live-notice check belongs to the Detail view, and
+    every surface built on this says so."""
+    return [lane_verdict(rec, entity, today).state for rec in candidates.to_dict("records")]
+
+
 def lane_counts(candidates: pd.DataFrame, entity: EntityCerts | None, today: date) -> dict[str, int]:
-    """Historical-path-only lane tally for the Company strip (no notice join at 5k-row
-    scale — the live check belongs to the Detail view, and the strip's caption says so)."""
+    """Historical-path-only lane tally for the Company strip (the aggregated
+    :func:`lane_states` — one rule, two surfaces)."""
     counts = {s: 0 for s in LANE_STATES}
-    for rec in candidates.to_dict("records"):
-        counts[lane_verdict(rec, entity, today).state] += 1
+    for state in lane_states(candidates, entity, today):
+        counts[state] += 1
     return counts

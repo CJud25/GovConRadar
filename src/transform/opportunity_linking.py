@@ -9,12 +9,26 @@ import numpy as np
 import pandas as pd
 from rapidfuzz import fuzz, process
 
+from transform.cleaning import CONTACT_TITLE_PLACEHOLDER
 from utils.coerce import nan_str, norm_id
+from utils.config import OPPORTUNITY_LINKING
 
 TITLE_MATCH_THRESHOLD = 70  # rapidfuzz token_sort_ratio, 0-100 — a STRONG title hit (links alone)
 # A loosened floor. A title score in [LOOSE, STRONG) links ONLY when a corroborating signal
 # (NAICS / agency / PoP-state) is also present, so loosening never manufactures a false link.
 TITLE_LOOSE_THRESHOLD = 55
+
+# Recency gate (asserted priors — config/opportunity_linking.yaml): an establishing match is
+# REJECTED when both dates are known and the notice was not posted within
+# [anchor - BEFORE months, anchor + AFTER months] around EITHER of the candidate's own ends —
+# the policy-selected expiration OR the current period end (an award whose options go
+# unexercised is legitimately recompeted near current_end_date, far before the potential end;
+# that displacement event must not be gated out). A recompete solicitation appears near/after
+# the incumbent's expiry — never years before it (the 2026-07 audit's degenerate case: one
+# 2018 notice "recompeting" 70 of 120 2025-enders).
+# A missing/unparseable date on either side never gates: it cannot prove a violation.
+RECENCY_MONTHS_BEFORE = int(OPPORTUNITY_LINKING["recency_months_before"])
+RECENCY_MONTHS_AFTER = int(OPPORTUNITY_LINKING["recency_months_after"])
 
 BRIDGE_COLUMNS = ["candidate_id", "linked_notice_id", "linked_notice_type", "link_confidence", "link_reason"]
 
@@ -27,6 +41,7 @@ OPPORTUNITY_CLEAN_COLUMNS = [
     "naics",
     "agency",
     "place_of_performance_state",
+    "posted_date",
 ]
 
 
@@ -112,6 +127,7 @@ def build_opportunities_clean(sam_records: list) -> pd.DataFrame:
                         if rec.get("place_of_performance_state")
                         else None
                     ),
+                    "posted_date": rec.get("posted_date"),
                 }
             )
         else:  # live API v2 record
@@ -124,9 +140,19 @@ def build_opportunities_clean(sam_records: list) -> pd.DataFrame:
                     "naics": _extract_sam_naics(rec),
                     "agency": _extract_sam_agency(rec),
                     "place_of_performance_state": _extract_sam_pop_state(rec),
+                    "posted_date": rec.get("postedDate"),
                 }
             )
     return pd.DataFrame(rows, columns=OPPORTUNITY_CLEAN_COLUMNS)
+
+
+def _matchable_title(v) -> str:
+    """Title text the fuzzy matcher may score: '' for missing AND for the public-artifact
+    redaction placeholder (transform.cleaning.redact_contact_titles replaces whole titles
+    with one fixed string — two redacted titles must not fabricate a 100-point match, the
+    same trap as rapidfuzz scoring "" vs "" as 100)."""
+    t = nan_str(v)
+    return "" if t == CONTACT_TITLE_PLACEHOLDER else t
 
 
 def _prepare_notices(notices: pd.DataFrame) -> list[dict]:
@@ -144,10 +170,31 @@ def _prepare_notices(notices: pd.DataFrame) -> list[dict]:
             "agency": rec.get("agency"),
             "sol_norm": norm_id(rec.get("solicitation_number")),
             "state_norm": nan_str(rec.get("place_of_performance_state")).upper(),
-            "title": nan_str(rec.get("title")),
+            "title": _matchable_title(rec.get("title")),
+            "posted": pd.to_datetime(rec.get("posted_date"), errors="coerce"),
         }
         for rec in notices.to_dict("records")
     ]
+
+
+def _candidate_recency_anchors(candidate: dict) -> list:
+    """The award-end Timestamps the recency gate anchors on (deduped, order-stable):
+    the pipeline's policy-selected expiration when present (recorded per-row in
+    expiration_date_basis — see config/recompete.yaml), else the potential end, else the
+    current end — PLUS the current period end whenever it parses. Anchoring on the current
+    end as well keeps a legitimate early recompete linkable when options go unexercised
+    (the follow-on posts near current_end_date, far before the potential end). Empty when
+    none parse — an unknown expiry cannot gate."""
+    anchors = []
+    for col in ("selected_expiration_date", "potential_end_date", "current_end_date"):
+        ts = pd.to_datetime(candidate.get(col), errors="coerce")
+        if pd.notna(ts):
+            anchors.append(ts)
+            break
+    cur = pd.to_datetime(candidate.get("current_end_date"), errors="coerce")
+    if pd.notna(cur) and cur not in anchors:
+        anchors.append(cur)
+    return anchors
 
 
 def link_candidate_to_notices(
@@ -161,6 +208,22 @@ def link_candidate_to_notices(
     signal — NAICS / agency / PoP-state (=> Low). NAICS/agency/PoP alone never establish a
     link (a NAICS is shared by thousands of unrelated awards). Only an exact id → High, so a
     near-miss is never promoted to a false High.
+
+    RECENCY GATE (config/opportunity_linking.yaml): whatever the establishing signal, a
+    notice whose posted_date falls outside [anchor - RECENCY_MONTHS_BEFORE,
+    anchor + RECENCY_MONTHS_AFTER] around EVERY known anchor — the policy-selected
+    expiration AND the current period end (_candidate_recency_anchors) — is rejected: a
+    recompete solicitation appears near/after the incumbent's expiry, not years before it.
+    Landing inside EITHER anchor's window accepts, so an early recompete posted near
+    current_end_date after options go unexercised still links.
+
+    ORIGIN GATE: an establishing match whose posted_date precedes the candidate's own
+    pop_start_date is rejected — an award's own origin solicitation (posted before its
+    performance even started) is never its successor, however strong the id/title hit.
+
+    Both gates need BOTH of their dates: a missing/unparseable posted_date, candidate end,
+    or pop_start_date never gates (it cannot prove a violation), preserving legacy
+    behavior for undated rows.
 
     ``title_scores`` is an optional precomputed 1-D array of token_sort_ratio scores aligned
     to the notice order (build_bridge_table vectorizes this). ``prepared`` is the output of
@@ -177,10 +240,22 @@ def link_candidate_to_notices(
             "link_reason": "No SAM.gov opportunity notices available",
         }
 
-    candidate_title = nan_str(candidate.get("contract_title"))
+    candidate_title = _matchable_title(candidate.get("contract_title"))
     candidate_ids = {norm_id(candidate.get("piid")), norm_id(candidate.get("referenced_idv_piid"))} - {""}
     candidate_state = nan_str(candidate.get("place_of_performance_state")).upper()
     cand_naics, cand_agency = candidate.get("naics"), candidate.get("agency")
+
+    # Recency windows around this candidate's own ends — selected expiry AND current end
+    # (empty when no end is known; inside EITHER window accepts).
+    recency_windows = [
+        (anchor - pd.DateOffset(months=RECENCY_MONTHS_BEFORE), anchor + pd.DateOffset(months=RECENCY_MONTHS_AFTER))
+        for anchor in _candidate_recency_anchors(candidate)
+    ]
+    # Origin gate: a notice posted before the award's own start is its origin paperwork,
+    # never its successor (NaT when unknown — cannot gate).
+    pop_start = pd.to_datetime(candidate.get("pop_start_date"), errors="coerce")
+    recency_rejected = False
+    origin_rejected = False
 
     best_rank, best_notice, best_reasons, best_conf = -1.0, None, [], "No Match"
     for i, notice in enumerate(prepared):
@@ -207,6 +282,24 @@ def link_candidate_to_notices(
         elif title_loose and corroboration >= 1:
             establishing = "title_loose"
         else:
+            continue
+
+        # ORIGIN GATE: an establishing match posted before this award's own start is the
+        # award's origin solicitation (the notice that PRODUCED it), never its successor —
+        # a short PoP puts the origin notice inside the recency window, so this must be
+        # checked in its own right. Applies only when BOTH dates are known.
+        if pd.notna(pop_start) and pd.notna(notice["posted"]) and notice["posted"] < pop_start:
+            origin_rejected = True
+            continue
+
+        # RECENCY GATE: an establishing match posted outside the sane window around EVERY
+        # known end (selected expiry / current end) is rejected — a notice posted years
+        # before an award's end cannot be its recompete solicitation, while one near a
+        # declined-options current end still links. Applies only when BOTH dates are known.
+        if recency_windows and pd.notna(notice["posted"]) and not any(
+            lo <= notice["posted"] <= hi for lo, hi in recency_windows
+        ):
+            recency_rejected = True
             continue
 
         rank, reasons = 0.0, []
@@ -237,11 +330,21 @@ def link_candidate_to_notices(
             best_rank, best_notice, best_reasons, best_conf = rank, notice, reasons, confidence
 
     if best_notice is None:
+        rejected = []
+        if recency_rejected:
+            rejected.append("outside the recency window around this award's expiration")
+        if origin_rejected:
+            rejected.append("before this award's own start (an origin notice, not a successor)")
+        reason = (
+            "Only match(es) posted " + " or ".join(rejected)
+            if rejected
+            else "No notice cleared the minimum match threshold"
+        )
         return {
             "linked_notice_id": None,
             "linked_notice_type": None,
             "link_confidence": "No Match",
-            "link_reason": "No notice cleared the minimum match threshold",
+            "link_reason": reason,
         }
 
     return {
@@ -264,11 +367,12 @@ def build_bridge_table(recompete_candidates: pd.DataFrame, notices: pd.DataFrame
     # ~candidates × notices Python-level fuzz calls. Scores are IDENTICAL to the per-pair
     # path: token_sort_ratio in float, with empty candidate or notice titles forced to 0 to
     # reproduce the `candidate_title and notice_title else 0` guard (rapidfuzz scores "" vs
-    # "" as 100, which must not fabricate a link).
+    # "" as 100, which must not fabricate a link; _matchable_title blanks the redaction
+    # placeholder for the same reason).
     score_matrix = None
     if prepared:
         cand_titles = (
-            [nan_str(t) for t in recompete_candidates["contract_title"]]
+            [_matchable_title(t) for t in recompete_candidates["contract_title"]]
             if "contract_title" in recompete_candidates.columns
             else [""] * len(recompete_candidates)
         )

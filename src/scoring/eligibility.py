@@ -41,7 +41,7 @@ def eligibility(candidate: dict[str, object], entity: EntityCerts, today: date) 
     """Return whether ``entity`` (the firm) is eligible for the incumbent's set-aside."""
     code = nan_str(candidate.get("type_of_set_aside_code")).upper()
     if code in _OPEN_CODES:
-        return _result(True, "full-and-open or unknown set-aside")
+        return _result(True, "no set-aside restriction (or not reported)")
 
     if code.startswith("8A"):
         if not entity.is_8a:

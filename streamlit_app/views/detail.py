@@ -11,7 +11,17 @@ from components import briefing, charts, rescore, shell, theme
 from components import eligibility_lane as el
 from components import price_to_win as ptw
 from components import reason_codes as rc
-from components.data import get_context, notice_response_days, page_header, profile_is_custom, usd
+from components.data import (
+    DISPLACEMENT_SORT_LABEL,
+    PURSUIT_SORT_LABEL,
+    displacement_sort,
+    displacement_sort_ready,
+    get_context,
+    notice_response_days,
+    page_header,
+    profile_is_custom,
+    usd,
+)
 from labels.taxonomy import SURFACE_LANGUAGE
 
 MONTHS = 30.44
@@ -244,6 +254,47 @@ def _render_mods_signals(row):
     st.caption(f"◐ Estimate — {MODS_DISCLOSURE}")
 
 
+# Human labels for the fired-signal slugs baked in displacement_signals (F1 lane).
+_DISPLACEMENT_LABELS = {
+    "bridge": "Bridge extension",
+    "termination": "Termination on record",
+    "deobligation": "Large deobligation",
+    "lapsed_no_successor": "Lapsed, no successor visible",
+    "sole_offer": "Sole offer at last competition",
+    "size_shift": "Incumbent size-standard shift",
+}
+
+
+def _render_displacement_lane(row):
+    """Incumbent-displacement lane (F1) — the categorical 'k of n' read from the baked
+    displacement_* columns (src/scoring/incumbent_displacement.py). Column-guarded like
+    _render_mods_signals: a pre-lane bundle renders nothing. Renders no panel when the lane
+    is insufficient (the reason-codes missing chip already says so) or when zero signals
+    fired (Subtraction — no empty-panel noise). A LABEL, never blended into the score."""
+    if "displacement_basis" not in row.index or str(row.get("displacement_basis", "")) != "observed":
+        return
+    k, n = row.get("displacement_signal_count"), row.get("displacement_signals_read")
+    if pd.isna(k) or pd.isna(n) or int(k) < 1:
+        return
+    # Whitelist against the fixed taxonomy — an unrecognized token (only reachable via a
+    # tampered cell) is DROPPED, never rendered, so nothing data-derived can inject markup
+    # or markdown into either the chip row (html) or the caption (st.caption markdown).
+    slugs = [s for s in str(row.get("displacement_signals", "")).split("+") if s in _DISPLACEMENT_LABELS]
+    chips = [f'<span class="chip chip-amber">◐ {html.escape(_DISPLACEMENT_LABELS[s])}</span>' for s in slugs]
+    st.divider()
+    st.markdown('<div class="rr-title" style="font-size:18px">Incumbent displacement signals</div>',
+                unsafe_allow_html=True)
+    st.markdown(f"**{int(k)} of {int(n)}** readable signals fired:&nbsp;&nbsp;" + "  ".join(chips),
+                unsafe_allow_html=True)
+    unread_slugs = [s for s in str(row.get("displacement_unread", "")).split("+") if s in _DISPLACEMENT_LABELS]
+    unread_note = ""
+    if unread_slugs:
+        unread_names = ", ".join(_DISPLACEMENT_LABELS[s].lower() for s in unread_slugs)
+        unread_note = f" Not readable on this record: {unread_names}."
+    st.caption("◐ Estimate — a categorical lane over baked public-data signals; it is never blended into "
+               f"the pursuit score.{unread_note} {MODS_DISCLOSURE}")
+
+
 def _linked_notice_days(ctx, sel_cid):
     """D1: the live countdown (in days, vs TODAY) to this candidate's LINKED SAM.gov
     notice deadline — the NEAREST future response_deadline among its linked notice(s),
@@ -303,9 +354,29 @@ def _render_notice_clock(ctx, sel_cid):
 qp_cid = st.query_params.get("cid")
 if qp_cid not in ids:
     st.markdown('<div class="rr-title" style="font-size:20px">Your top 5 fits</div>', unsafe_allow_html=True)
-    st.caption("Pick a recompete candidate to open its Capture Brief — ranked by pursuit score, "
-               "or search the full pipeline below.")
-    for _, r in cand.sort_values("pursuit_score", ascending=False).head(5).iterrows():
+    # F2 — the displacement sort lens on the chase list: an ORDERING choice over the baked
+    # F1 lane, single-sourced in components.data (shared with the Explorer). Column-guarded:
+    # a pre-lane bundle keeps the pursuit ordering and never offers the radio. The scores
+    # shown on each row never move — the lane is a label beside the score, never inside it.
+    launcher_order = PURSUIT_SORT_LABEL
+    if displacement_sort_ready(cand):
+        launcher_order = st.radio(
+            "Rank by", [PURSUIT_SORT_LABEL, DISPLACEMENT_SORT_LABEL], horizontal=True,
+            key="detail_top5_order",
+            help="A view-layer ordering lens — scores and tiers never move. "
+                 f"'{DISPLACEMENT_SORT_LABEL}' surfaces bridge-flagged, sole-offer, expiring "
+                 "incumbents first (observed signal count, pursuit score as tie-break); rows "
+                 "where the lane is unreadable sort last. ◐ estimate lane.")
+    if launcher_order == DISPLACEMENT_SORT_LABEL:
+        _top5 = displacement_sort(cand).head(5)
+        st.caption("Pick a recompete candidate to open its Capture Brief — ranked by observed "
+                   "displacement signals (pursuit score as tie-break; an ordering lens, the "
+                   "scores themselves are unchanged) — or search the full pipeline below.")
+    else:
+        _top5 = cand.sort_values("pursuit_score", ascending=False).head(5)
+        st.caption("Pick a recompete candidate to open its Capture Brief — ranked by pursuit score, "
+                   "or search the full pipeline below.")
+    for _, r in _top5.iterrows():
         cid = str(r["candidate_id"])
         col_row, col_btn = st.columns([5, 1])
         col_row.markdown(
@@ -377,6 +448,20 @@ c2.metric("Priority tier", str(row.get("priority_tier", "—")).replace("Tier ",
 c3.metric("Estimated value", usd(row.get("total_obligated_amount")))
 c4.metric("Expires", str(row.get("selected_expiration_date", "—")))
 
+# F3 — Data-Gap-style visibility for a HARD eligibility gate, right at the score (mirrors
+# the expired-stale verify callout above): the score's set_aside_fit component measures the
+# restriction's fit to a small-business strategy — it never checks YOUR eligibility — so an
+# ineligible prime path must be unmissable where the number is read. Fixed copy, never data.
+if _lane.state == "gate":
+    st.warning(
+        "**Ineligible as prime for this set-aside** (per the eligibility lane above — the live "
+        "solicitation's published restriction vs your attested certifications). The pursuit score's "
+        "set-aside component rewards restricted work regardless of who can prime it, so a strong "
+        "score does **not** clear this gate. A subcontract, joint-venture, or SBA mentor-protégé "
+        "teaming path stays open.",
+        icon="⛔",
+    )
+
 # ---- Reason codes: why this scores what it does (read-only projection; the score can't move) ----
 # Placed directly under the metrics (above Obligation pace) so it explains the score just shown.
 chips = rc.detail_chips(row, ctx["profile"])
@@ -404,6 +489,9 @@ _render_obligation_pace(row, ctx.get("as_of", "the snapshot date"))
 
 # ---- Termination / bridge / ceiling-balloon signals (baked mod_* columns) ----
 _render_mods_signals(row)
+
+# ---- Incumbent displacement lane (baked displacement_* columns; categorical, score-independent) ----
+_render_displacement_lane(row)
 
 # ---- Competitive Price Range (price-to-win) ----
 _render_competitive_price_range(row, ctx, sel_cid)

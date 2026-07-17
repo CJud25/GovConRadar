@@ -3,12 +3,21 @@
 link_labels:
   target_per_tier: 60           # sampled cases per link_confidence tier (~128 total; High tier capped at 8)
   min_labels_per_tier: 30       # publication floor (adapter re-asserts >= 30)
+  allow_bulk_fill: false        # G4 guard: a tier whose filled verdicts are 100% ONE labeled_date with
+                                # 0 notes and 0 unsure is REFUSED (suspect bulk fill) — flip ONLY for a
+                                # deliberate, documented single-sitting labeling session
 outcome_labels:
-  cohort_fy_start: 2023         # potential_end_date in 2022-10-01 .. 2024-09-30
-  cohort_fy_end: 2024
+  cohort_fy_start: 2019         # OUTCOME-labeling cohort: older window so recompete successors are
+  cohort_fy_end: 2021           # visible + reported (2019-2021 ends). Radar's forward view is separate.
   stratified_n: 150
   top_k: 50                     # adapter asserts == 50 (precision@10 structurally impossible)
   min_determinable_for_precision: 40
+  # Candidate grain for the outcome cohort. "vehicle" rolls orders up to their parent IDV and
+  # labels the vehicle's recompete (clock = the IDV ordering-period end), gating out vehicles
+  # still open at snapshot — the honest recompete unit (an order under a live vehicle is not a
+  # recompete event). "order" is the legacy per-order draw. See scripts/pull_idv_attributes.py.
+  grain: vehicle                # vehicle | order
+  idv_attributes: data/reference/idv_attributes.csv  # committed vehicle-attribute lookup
 lead_time:
   min_link_confidence: Medium   # High + Medium links only
 rank_stability:

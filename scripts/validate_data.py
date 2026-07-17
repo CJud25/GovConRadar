@@ -48,11 +48,23 @@ the list documented in .claude/skills/govcon-data-contract/SKILL.md:
      top-incumbent obligated-dollar share; top_share present <=> assessable; top_share in (0,1]
      and the vendor-floor + UEI-coverage gates hold on assessable markets; no negative obligated
      dollars. NO Herfindahl number and NO DOJ/FTC bands are computed (Corrections v2, Option A).
+     12b (F4, PRESENCE-GATED on dim_agency.concentration_basis — a pre-join bundle is exempt):
+     the baked per-component concentration_* join holds the unforgeable-Unknown equivalences
+     (observed <=> top_share present <=> no refusal reason; n_ueis always published; basis
+     vocabulary; top_share in (0,1] on observed) and equals a fresh annotate over the bundle's
+     own reportable frame — the same recompute-parity rule as invariants 10/10c.
  13. Trust-metrics honesty (PRESENCE-GATED on trust_metrics_report): gate_state vocabulary;
      value present <=> published (Unknown unforgeable); every gated row carries a note; CI rows
      ordered within [0,1]; published precision floors re-checked ON THE ARTIFACT (>=30/tier,
      >=40 for precision_at_50); NO metric named recall/_at_10/probability may exist;
      snapshot_date matches the bundle.
+ 14. Bridge-link recency honesty (PRESENCE-GATED on the bridge table + the linker's date
+     columns, mirroring 10c/12b): no established (non-No-Match) link whose notice posted_date
+     and candidate end-anchor both parse may sit outside the linker's recency window around
+     EVERY known anchor (selected expiry / current end — transform.opportunity_linking's own
+     priors). The 2026-07 audit's degenerate shape — a years-early notice "recompeting" far-
+     future expiries — can never ship in a baked bridge again; undated rows are exempt (a
+     date we do not have cannot prove a violation, the gate's own rule).
 """
 import argparse
 import sys
@@ -68,13 +80,14 @@ for _p in (ROOT / "streamlit_app", ROOT / "src", ROOT):
 
 from components import rescore  # noqa: E402
 from scoring import burn_pressure as burn  # noqa: E402
+from scoring import incumbent_displacement as disp  # noqa: E402
 from scoring import mods_signal as mods  # noqa: E402
 from scoring import quality_flags as quality  # noqa: E402
 from scoring import reason_codes as rc  # noqa: E402
 from scoring.market_concentration import compute_hhi_concentration  # noqa: E402  # hhi_concentration
 from transform.cleaning import CONTACT_TITLE_RE, PUBLIC_EXCLUDED_COLUMNS  # noqa: E402
 from transform.incumbent_agency import BASIS_SCORED, VULNERABILITY_UNKNOWN_BASES  # noqa: E402
-from utils.config import BURN_PRESSURE, HHI_CONCENTRATION_CONFIG, REASON_CODES  # noqa: E402
+from utils.config import BURN_PRESSURE, HHI_CONCENTRATION_CONFIG, INCUMBENT_DISPLACEMENT, REASON_CODES  # noqa: E402
 
 POWERBI_DIR = ROOT / "data" / "powerbi"                       # FULL snapshot (not committed)
 SAMPLE_DIR = ROOT / "data" / "sample"                         # committed default subsample
@@ -367,6 +380,60 @@ def validate(target: Path) -> list:
                     bool(txns["transaction_id"].is_unique),
                     f"{int(txns['transaction_id'].duplicated().sum())} duplicate ids")
 
+    # 10c. Displacement-lane honesty (PRESENCE-GATED on displacement_basis, mirroring 10/10b —
+    #      a pre-lane bundle is exempt; the lane columns are deliberately NOT in REQUIRED_COLUMNS).
+    #      The lane is a categorical LABEL: these checks pin vocabulary, the unforgeable-Unknown
+    #      equivalences, count<=read<=6, and baked == fresh recompute over the bundle's own
+    #      dim_vendor (the same join the bake used). Invariant 1 above is the firewall proving
+    #      the lane never moved pursuit_score/priority_tier.
+    if "displacement_basis" in cand.columns:
+        d_basis = cand["displacement_basis"].astype(str)
+        d_band = cand["displacement_band"].astype(str)
+        d_count = pd.to_numeric(cand["displacement_signal_count"], errors="coerce")
+        d_read = pd.to_numeric(cand["displacement_signals_read"], errors="coerce")
+        d_sigs = cand["displacement_signals"]
+        d_unread = cand["displacement_unread"]
+        observed = d_basis.eq("observed")
+
+        r.check("displacement:basis vocabulary", bool(d_basis.isin(set(disp.DISPLACEMENT_BASES)).all()))
+        r.check("displacement:band vocabulary",
+                bool(d_band.isin(set(disp.DISPLACEMENT_BANDS) | {disp.DISPLACEMENT_BAND_NA}).all()))
+        # Unforgeable Unknown: observed <=> count present <=> signals present <=> real band.
+        r.check("displacement:equiv observed<->count present", bool((observed == d_count.notna()).all()))
+        r.check("displacement:equiv observed<->signals present", bool((observed == d_sigs.notna()).all()))
+        r.check("displacement:equiv observed<->real band",
+                bool((observed == d_band.isin(set(disp.DISPLACEMENT_BANDS))).all()))
+        r.check("displacement:read count always published", bool(d_read.notna().all()))
+        r.check("displacement:unread always published", bool(d_unread.notna().all()))
+        n_total = len(disp.DISPLACEMENT_SIGNALS)
+        r.check("displacement:0 <= count <= read <= n_signals",
+                bool(((d_count.fillna(0) >= 0) & (d_count.fillna(0) <= d_read) & (d_read <= n_total)).all()))
+        # Recompute parity: the baked lane == a fresh annotate over the same bundle.
+        fresh = disp.annotate_displacement(
+            cand.copy(), disp.load_displacement_config(INCUMBENT_DISPLACEMENT), vendor_size_shift=dim_vendor,
+        )
+        r.check("displacement:basis recompute 100% match",
+                bool((fresh["displacement_basis"].values == d_basis.values).all()))
+        r.check("displacement:band recompute 100% match",
+                bool((fresh["displacement_band"].values == d_band.values).all()))
+        f_count = pd.to_numeric(fresh["displacement_signal_count"], errors="coerce")
+        r.check("displacement:count recompute NaN alignment",
+                bool((f_count.isna().values == d_count.isna().values).all()))
+        cdiff = float((f_count - d_count).abs().max()) if bool(d_count.notna().any()) else 0.0
+        r.check("displacement:count recompute max abs diff == 0.0", not (cdiff > 0.0), f"max diff {cdiff}")
+        # fillna sentinel BEFORE str-compare: an insufficient row is NaN off CSV but None fresh
+        # in memory — both are NA to pandas, and neither may read as the literal "nan"/"None".
+        baked_sigs = d_sigs.fillna("__NA__").astype(str)
+        fresh_sigs = fresh["displacement_signals"].fillna("__NA__").astype(str)
+        sig_mismatch = int((fresh_sigs.values != baked_sigs.values).sum())
+        r.check("displacement:signals recompute 100% match", sig_mismatch == 0, f"{sig_mismatch} rows")
+        # unread is the one always-published column that flows into rendered markdown — pin its
+        # content to the recompute too (not just notna), closing the tamper path (security 10c).
+        baked_unread = d_unread.fillna("__NA__").astype(str)
+        fresh_unread = fresh["displacement_unread"].fillna("__NA__").astype(str)
+        unread_mismatch = int((fresh_unread.values != baked_unread.values).sum())
+        r.check("displacement:unread recompute 100% match", unread_mismatch == 0, f"{unread_mismatch} rows")
+
     # 11. Reason-codes honesty (recompute over real facts; nothing is baked). SAMPLE-gated for wall-time
     #     (trivial on the 200-row sample; skipped on the 36k powerbi target — CI gates on the sample) and
     #     presence-gated so an older/pre-burn bundle degrades rather than KeyErrors. score_components is
@@ -425,6 +492,49 @@ def validate(target: Path) -> list:
         r.check("hhi_concentration:no non-positive obligated dollars on reportable candidates",
                 neg == 0, f"{neg} negative rows — deobligation math would break share denominators")
 
+        # 12b. Baked dim_agency concentration join (F4) — PRESENCE-GATED on the baked columns
+        #      (mirrors 10/10b/10c: a pre-join bundle is exempt, never KeyErrored). The lane is a
+        #      LABEL at agency grain; invariant 1 above remains the firewall proving it never
+        #      moved pursuit_score/priority_tier.
+        dim_agency = _load(target, "dim_agency")
+        if "concentration_basis" in dim_agency.columns:
+            from scoring.market_concentration import (
+                CONCENTRATION_BASES,
+                annotate_agency_concentration,
+            )
+
+            c_share = pd.to_numeric(dim_agency["concentration_top_share"], errors="coerce")
+            c_basis = dim_agency["concentration_basis"].astype(str)
+            c_n = pd.to_numeric(dim_agency["concentration_n_ueis"], errors="coerce")
+            c_reason = dim_agency["concentration_reason"]
+            c_observed = c_basis.eq("observed")
+
+            r.check("hhi_concentration:baked basis vocabulary",
+                    bool(c_basis.isin(set(CONCENTRATION_BASES)).all()))
+            r.check("hhi_concentration:baked equiv observed<->top_share present",
+                    bool((c_observed == c_share.notna()).all()))
+            # An observed row's empty reason legitimately round-trips CSV as NaN — blank-or-NaN
+            # counts as "no refusal"; a reason on an observed row (or none on an insufficient
+            # row) breaks the equivalence.
+            reason_blank = c_reason.isna() | c_reason.astype(str).str.strip().eq("")
+            r.check("hhi_concentration:baked equiv observed<->no refusal reason",
+                    bool((c_observed == reason_blank).all()))
+            r.check("hhi_concentration:baked top_share in (0,1] on observed",
+                    bool(((c_share.dropna() > 0.0) & (c_share.dropna() <= 1.0)).all()))
+            r.check("hhi_concentration:baked n_ueis always published", bool(c_n.notna().all()))
+            fresh_da = annotate_agency_concentration(dim_agency, reportable, HHI_CONCENTRATION_CONFIG)
+            r.check("hhi_concentration:baked basis recompute 100% match",
+                    bool((fresh_da["concentration_basis"].values == c_basis.values).all()))
+            f_share = pd.to_numeric(fresh_da["concentration_top_share"], errors="coerce")
+            r.check("hhi_concentration:baked share recompute NaN alignment",
+                    bool((f_share.isna().values == c_share.isna().values).all()))
+            sdiff = float((f_share - c_share).abs().max()) if bool(c_share.notna().any()) else 0.0
+            r.check("hhi_concentration:baked share recompute max abs diff ~ 0",
+                    not (sdiff > 1e-12), f"max diff {sdiff}")
+            f_n = pd.to_numeric(fresh_da["concentration_n_ueis"], errors="coerce")
+            r.check("hhi_concentration:baked n_ueis recompute 100% match",
+                    bool((f_n.values == c_n.values).all()))
+
     # 13. Trust-metrics honesty (PRESENCE-GATED on trust_metrics_report existing, so
     #     pre-Phase-1 bundles — including the shipped release — stay exempt, not failed):
     #     a gated metric can never carry a number, and no forbidden metric can exist at all.
@@ -466,6 +576,53 @@ def validate(target: Path) -> list:
         r.check("trust:snapshot_date matches dashboard_kpi_summary",
                 bool((trust["snapshot_date"].astype(str) == str(kpi["snapshot_date"])).all()),
                 "trust rows stamped with a different snapshot than the bundle")
+
+    # 14. Bridge-link recency honesty (PRESENCE-GATED, mirroring 10c/12b): every established
+    #     (non-No-Match) link must sit inside the linker's recency window around AT LEAST ONE
+    #     known anchor — the policy-selected expiry (selected -> potential -> current fallback,
+    #     _candidate_recency_anchors' chain) or the current period end. The 2026-07 audit found
+    #     71% of the shipped bridge's links outside the window the linker code already enforced:
+    #     the artifact had never been re-baked. Undated rows are exempt — a date we do not have
+    #     cannot prove a violation (the gate's own rule).
+    bridge_path = target / "bridge_award_opportunity_links.csv"
+    bridge_cand_cols = {"candidate_id", "selected_expiration_date", "current_end_date"}
+    if bridge_path.exists() and bridge_cand_cols.issubset(cand.columns):
+        from transform.opportunity_linking import RECENCY_MONTHS_AFTER, RECENCY_MONTHS_BEFORE
+
+        bridge = _load(target, "bridge_award_opportunity_links")
+        notices_path = target / "fact_opportunity_notices.csv"
+        notices = _load(target, "fact_opportunity_notices") if notices_path.exists() else pd.DataFrame()
+        if ({"candidate_id", "linked_notice_id", "link_confidence"}.issubset(bridge.columns)
+                and {"notice_id", "posted_date"}.issubset(notices.columns)):
+            est = bridge[bridge["link_confidence"].astype(str) != "No Match"]
+            anchor_cols = [c for c in ("selected_expiration_date", "potential_end_date", "current_end_date")
+                           if c in cand.columns]
+            # str-normalize both merge keys: an all-No-Match bridge (e.g. the legacy synthetic
+            # bundle) parses linked_notice_id as all-NaN float64, and a float64<->object merge
+            # raises even on an empty established set.
+            m = est.assign(linked_notice_id=est["linked_notice_id"].astype(str)).merge(
+                cand[["candidate_id", *anchor_cols]], on="candidate_id", how="left",
+            ).merge(
+                notices[["notice_id", "posted_date"]].drop_duplicates("notice_id")
+                .assign(notice_id=lambda d: d["notice_id"].astype(str)),
+                left_on="linked_notice_id", right_on="notice_id", how="left",
+            )
+            posted = pd.to_datetime(m["posted_date"], errors="coerce")
+            parsed = {c: pd.to_datetime(m[c], errors="coerce") for c in anchor_cols}
+            nat = pd.Series(pd.NaT, index=m.index)
+            # The selected-expiry anchor mirrors _candidate_recency_anchors' fallback chain.
+            primary = (parsed.get("selected_expiration_date", nat)
+                       .fillna(parsed.get("potential_end_date", nat))
+                       .fillna(parsed.get("current_end_date", nat)))
+            current = parsed.get("current_end_date", nat)
+            lo, hi = pd.DateOffset(months=RECENCY_MONTHS_BEFORE), pd.DateOffset(months=RECENCY_MONTHS_AFTER)
+            in_primary = primary.notna() & (posted >= primary - lo) & (posted <= primary + hi)
+            in_current = current.notna() & (posted >= current - lo) & (posted <= current + hi)
+            gateable = posted.notna() & (primary.notna() | current.notna())
+            violations = int((gateable & ~(in_primary | in_current)).sum())
+            r.check("bridge:established links inside the recency window (either anchor)",
+                    violations == 0,
+                    f"{violations} of {len(est)} established link(s) posted outside every known anchor window")
 
     return r.failures
 

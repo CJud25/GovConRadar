@@ -161,6 +161,23 @@ def _the_office(ev: BriefEvidence) -> list[str]:
         lines.append(f"{exp_n} contracts expiring within 12 months ({_usd(exp_val)} pipeline){tail}.")
     if not lines:
         lines.append(f"{name}: aggregates not available.")
+    # F4 — the component's incumbent concentration (baked dim_agency join; double-gated).
+    # Presence-gated: an older bundle without the columns renders neither line. The
+    # insufficient branch names the module's own refusal reason — Unknown, never imputed.
+    c_basis = _s(o.get("concentration_basis"))
+    c_share, c_n = _f(o.get("concentration_top_share")), _i(o.get("concentration_n_ueis"))
+    if c_basis == "observed" and c_share is not None and c_n is not None:
+        # "attributed (UEI-known)": top_share's denominator is the ATTRIBUTED slice of the
+        # reportable pool (market_concentration._assess_market divides by attributed_net,
+        # not market_net — up to max_unknown_uei_share of dollars carry no incumbent UEI).
+        lines.append(
+            f"Incumbent concentration: the top incumbent holds {c_share:.0%} of the component's "
+            f"attributed (UEI-known) expiring obligated dollars, across {c_n} incumbents — a "
+            "dollar-share of this recompete set, not market share or market power."
+        )
+    elif c_basis == "insufficient":
+        reason = _s(o.get("concentration_reason")) or "insufficient data"
+        lines.append(f"Incumbent concentration: not assessable — {reason}. Unknown, never an imputed number.")
     lines.append(OFFICE_NOTE)
     return lines
 

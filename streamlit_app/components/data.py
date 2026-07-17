@@ -269,6 +269,39 @@ def bridge_watch_mask(df: pd.DataFrame) -> pd.Series:
     return (df["candidate_status"] == "expired_grace") & (df["successor_visible_basis"] == "none_visible")
 
 
+# ─── Displacement sort lens (F2): rank the chase list on the strong signals ────
+# A VIEW-LAYER ordering choice over the baked F1 displacement lane. It never
+# recomputes or mutates pursuit_score / priority_tier (the scorer-parity firewall
+# stays byte-identical) — it only reorders rows already shown, so a bridge-flagged,
+# sole-offer incumbent can rank above a mock-profile capability match WITHOUT the
+# lane ever leaking into the score. Single-sourced here (the bridge-watch pattern)
+# so the Explorer table and the Detail "top 5" launcher can never drift on the
+# option labels or the ordering rule.
+PURSUIT_SORT_LABEL = "Pursuit score"
+DISPLACEMENT_SORT_LABEL = "Displacement signals, then score"
+
+
+def displacement_sort_ready(df: pd.DataFrame) -> bool:
+    """True when the baked F1 lane columns exist to order on. Column-guarded like
+    bridge_watch_mask — a pre-lane bundle simply never offers the lens."""
+    if df is None or df.empty:
+        return False
+    return {"displacement_signal_count", "displacement_basis", "pursuit_score"}.issubset(df.columns)
+
+
+def displacement_sort(df: pd.DataFrame) -> pd.DataFrame:
+    """Rows ordered by observed displacement_signal_count (desc), pursuit_score as
+    the tie-break. Lane-insufficient rows (count is NA — Unknown, never imputed to
+    0) sort LAST regardless of score: an unreadable lane is not a quiet lane.
+    ``key=`` coerces both sort columns numerically so a CSV string round-trip
+    ("2", "87.3") can never corrupt the ordering. Returns a reordered VIEW of the
+    same rows — nothing is dropped, recomputed, or mutated."""
+    return df.sort_values(
+        ["displacement_signal_count", "pursuit_score"], ascending=[False, False],
+        na_position="last", key=lambda s: pd.to_numeric(s, errors="coerce"),
+    )
+
+
 @st.cache_data(show_spinner="Scoring the pipeline for your company…", max_entries=32, ttl=3600)
 def _prepared(data_dir_str: str, today_str: str, profile_json: str, scorer_version: str) -> pd.DataFrame:
     """Load candidates, recompute runway vs today, and (re)score against the active

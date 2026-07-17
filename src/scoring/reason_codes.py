@@ -69,14 +69,15 @@ SIGNAL_CODES: frozenset[str] = frozenset(
         "data_quality",
         "data_gap_code_prefix",
         "data_gap_short_title",
+        "displacement",
         "empty_state",
     }
-)  # 18 signals (burn chip CUT per Corrections v2 C2.1; competition CUT per Spec 2 §12)
+)  # 19 signals (burn chip CUT per Corrections v2 C2.1; competition CUT per Spec 2 §12; displacement lane F1)
 
 # Every template_id the handlers can emit — the completeness contract (load_reason_config validates
 # TEMPLATE_IDS == cfg.templates exactly: no missing, no orphan). `agency_baseline_blank` is the
 # blank-subagency-safe baseline (Corrections v2 C2.3); there are NO burn / data_quality_neutral /
-# agency_subagency_missing templates (all cut). 36 templates.
+# agency_subagency_missing templates (all cut). 38 templates.
 TEMPLATE_IDS: frozenset[str] = frozenset(
     {
         "incumbent_lock",
@@ -112,6 +113,8 @@ TEMPLATE_IDS: frozenset[str] = frozenset(
         "recompete_missing",
         "ptw_available",
         "ptw_missing",
+        "displacement_signals",
+        "displacement_missing",
         "idv_task_order",
         "data_quality_issue",
         "empty_state",
@@ -418,7 +421,11 @@ def _h_set_aside(row: Mapping[str, object], cfg: ReasonConfig) -> ReasonChip | N
         return _mk("set_aside", "set_aside_missing", "missing", cfg, evidence=NOT_REPORTED)
     if code.upper() == "NONE":
         return _mk(
-            "set_aside", "set_aside_none", "observed", cfg, evidence="Set-aside coded NONE - full and open competition."
+            "set_aside",
+            "set_aside_none",
+            "observed",
+            cfg,
+            evidence="Set-aside coded NONE - no set-aside restriction (competition extent is a separate FPDS field).",
         )
     return _mk("set_aside", "set_aside_restricted", "observed", cfg, evidence=f"FPDS set-aside code {code}.", code=code)
 
@@ -496,6 +503,36 @@ def _h_ptw(row: Mapping[str, object], cfg: ReasonConfig) -> ReasonChip | None:
             n=n_disp,
         )
     return _mk("ptw", "ptw_missing", "missing", cfg, evidence=NOT_REPORTED)
+
+
+def _h_displacement(row: Mapping[str, object], cfg: ReasonConfig) -> ReasonChip | None:
+    """The incumbent-displacement lane chip (F1). Presence-gated like ``_h_ptw`` — a pre-lane
+    bundle yields no chip, no KeyError. Reads only the baked lane columns
+    (scoring.incumbent_displacement) — never recomputes them. Fired signals -> an inferred
+    (ESTIMATE) chip naming k of n; an insufficient lane -> a missing chip (digit-free);
+    an observed-but-quiet lane -> NO chip (absence speaks — mirrors ``_h_urgency``)."""
+    if "displacement_basis" not in row:
+        return None
+    basis = _norm_str(row.get("displacement_basis"))
+    if basis == "insufficient":
+        return _mk("displacement", "displacement_missing", "missing", cfg, evidence=NOT_REPORTED)
+    if basis != "observed":
+        return None  # blank/NaN basis (partially-baked bundle) — never guessed
+    k = _to_int(row.get("displacement_signal_count"))
+    n = _to_int(row.get("displacement_signals_read"))
+    if k is None or n is None or k < 1:
+        return None  # zero signals observed — no chip
+    fired = _norm_str(row.get("displacement_signals")).replace("+", ", ").replace("_", " ")
+    return _mk(
+        "displacement",
+        "displacement_signals",
+        "inferred",
+        cfg,
+        evidence=f"{k} of {n} readable displacement signals fired ({fired or 'unnamed'}) - "
+        "a categorical lane over baked facts, never blended into the pursuit score.",
+        k=k,
+        n=n,
+    )
 
 
 def _h_idv_task_order(row: Mapping[str, object], cfg: ReasonConfig) -> ReasonChip | None:
@@ -746,6 +783,7 @@ def reason_codes(
     add(_h_expired_grace(row, cfg))
     add(_h_recompete(row, cfg))
     add(_h_ptw(row, cfg))
+    add(_h_displacement(row, cfg))
     add(_h_idv_task_order(row, cfg))
     add(_h_data_quality(row, cfg))
     add(_h_data_gap_code_prefix(row, cfg))

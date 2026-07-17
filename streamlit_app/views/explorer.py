@@ -2,18 +2,24 @@
 global search, shareable filter chips, a ranked candidate table with runway columns,
 and row → Contract Detail."""
 import html
+from datetime import date
 
 import pandas as pd
 import streamlit as st
 
 from components import charts, export, theme
+from components import eligibility_lane as el
 from components import reason_codes as rc
 from components.data import (
     BRIDGE_WATCH_COPY,
     BRIDGE_WATCH_LABEL,
+    DISPLACEMENT_SORT_LABEL,
+    PURSUIT_SORT_LABEL,
     active_filter_chips,
     apply_filters,
     bridge_watch_mask,
+    displacement_sort,
+    displacement_sort_ready,
     get_context,
     page_header,
     sidebar_filters,
@@ -207,6 +213,35 @@ if {"candidate_status", "successor_visible_basis"}.issubset(view.columns):
             st.stop()
         st.caption(f"{len(view):,} candidate(s) — {BRIDGE_WATCH_COPY}.")
 
+# ---- Displacement lane indicator + sort lens (baked displacement_* columns, F2) ----
+# Column-guarded like the mods/bridge-watch blocks above: a pre-lane bundle renders
+# neither the column nor the lens. The compact "k of n" indicator travels on `view`
+# unconditionally (so it reaches the shortlist frame downstream); the ordering lens is
+# opt-in and reorders ONLY what is shown — pursuit_score / priority_tier are never
+# recomputed or mutated (the F1 lane is a label BESIDE the score, never inside it).
+if {"displacement_signal_count", "displacement_signals_read", "displacement_basis"}.issubset(view.columns):
+    view["signals"] = view.apply(
+        lambda r: (f"{int(r['displacement_signal_count'])} of {int(r['displacement_signals_read'])}"
+                   if str(r.get("displacement_basis")) == "observed"
+                   and pd.notna(r.get("displacement_signal_count"))
+                   and pd.notna(r.get("displacement_signals_read"))
+                   else "—"),
+        axis=1,
+    )
+order_by = PURSUIT_SORT_LABEL
+if displacement_sort_ready(view):
+    order_by = st.radio(
+        "Order by", [PURSUIT_SORT_LABEL, DISPLACEMENT_SORT_LABEL], horizontal=True,
+        key="explorer_order_by",
+        help="A view-layer ordering lens — scores and tiers never move. "
+             f"'{DISPLACEMENT_SORT_LABEL}' ranks on the baked incumbent-displacement lane "
+             "(observed signal count, pursuit score as tie-break); rows where the lane is "
+             f"unreadable sort last, never imputed to zero. ◐ estimate lane — {MODS_DISCLOSURE}")
+    if order_by == DISPLACEMENT_SORT_LABEL:
+        st.caption("Ordered by observed displacement signals (k of n), pursuit score as tie-break — "
+                   "an ordering lens only; the score column itself is unchanged. Lane-unreadable "
+                   "rows sort last.")
+
 # ---- default best-fit shortlist: Tier 1–2 candidates inside an ~18-month runway.
 # The table/selection/export all run on table_df so the CSV + row-click index match
 # exactly what's on screen; the Charts + Calendar tabs stay on the full `view`.
@@ -225,8 +260,10 @@ show_all = st.session_state.setdefault("explorer_show_all", False)
 # filters + status multiselect — the rendered table must equal that advertised count.
 use_shortlist = ((not include_excluded) and (not show_all)
                  and not shortlisted.empty and len(shortlisted) < len(view))
-table_df = ((shortlisted if use_shortlist else view)
-            .sort_values("pursuit_score", ascending=False).reset_index(drop=True))
+_base = shortlisted if use_shortlist else view
+table_df = ((displacement_sort(_base) if order_by == DISPLACEMENT_SORT_LABEL
+             else _base.sort_values("pursuit_score", ascending=False))
+            .reset_index(drop=True))
 # ---- "Why" column: top-2 profile-INDEPENDENT fact chips per row (glyph + 18-char reason label).
 # Built on table_df (the small, sorted, SHOWN frame) so there's no per-row re-scoring and the cell
 # is glyph-prefixed → formula-safe. explorer_chips passes component_scores=None → stable across ?p=.
@@ -235,6 +272,18 @@ table_df["reasons"] = table_df.apply(
     lambda r: " · ".join(f"{c.glyph} {rc.engine.grid_label(c)}" for c in rc.explorer_chips(r)) or "—",
     axis=1,
 )
+# ---- "Prime path" column: the eligibility lane BESIDE the score (F3). The score's
+# set_aside_fit component rewards restricted work regardless of whether the firm can
+# actually prime it — this column puts the real gate/warn/unknown/clear verdict next to
+# the number, so a strong score can never hide an ineligible prime path. Historical-path
+# read only (the lane_counts rule); the certain-only live-notice check — the one path
+# that can hard-gate — runs on Contract Detail, and the column help says so. Built on
+# table_df (the small, sorted, SHOWN frame) like `reasons`; fixed glyph-prefixed labels
+# → inert on render, formula-safe on export. A LABEL: the score column never moves.
+table_df["prime_path"] = [
+    el.LANE_GRID_LABELS.get(s, el.LANE_GRID_LABELS["unknown"])
+    for s in el.lane_states(table_df, el.entity_from_profile(ctx["profile"]), date.today())
+]
 
 tab_table, tab_charts, tab_cal, tab_early_warning = st.tabs(
     ["  Candidates  ", "  Charts  ", "  Capture calendar  ", "  Early warning  "]
@@ -280,7 +329,8 @@ with tab_table:
         # column plus render-only projections like `reasons`. Any column added to table_df upstream and
         # named in display_cols will auto-surface here; keep display_cols the allow-list of intent.
         display_cols = [c for c in [
-            "priority_tier", "tminus", "months_left", "burn", "mods", "pursuit_score", "reasons", "title_display",
+            "priority_tier", "tminus", "months_left", "burn", "mods", "signals", "pursuit_score", "prime_path",
+            "reasons", "title_display",
             "subagency", "incumbent_vendor", "selected_expiration_date", "total_obligated_amount", "source_url",
         ] if c in table_df.columns]
         event = st.dataframe(
@@ -298,7 +348,21 @@ with tab_table:
                 "mods": st.column_config.TextColumn(
                     "Terminated / bridge", width="small",
                     help=f"Mod-derived estimate (◐). {MODS_DISCLOSURE} '—' where neither signal fired."),
+                "signals": st.column_config.TextColumn(
+                    "Displacement", width="small",
+                    help="Incumbent-displacement lane (◐ estimate): how many of the readable public "
+                         "signals fired (bridge / termination / deobligation / lapsed-no-successor / "
+                         "sole offer / size shift). '—' where the lane is unreadable. Never part of "
+                         f"the pursuit score. {MODS_DISCLOSURE}"),
                 "pursuit_score": st.column_config.ProgressColumn("Score", min_value=0, max_value=100, format="%d"),
+                "prime_path": st.column_config.TextColumn(
+                    "Prime path", width="small",
+                    help="Eligibility lane — can you PRIME this work? The expiring contract's "
+                         "historical FPDS set-aside code vs the certifications you attested "
+                         "(demo profile: no attestation exists, so coded rows read Unknown). "
+                         "A gate, not a score — it never moves the Score column. The live-"
+                         "solicitation check (the only path that can hard-gate) runs on "
+                         "Contract Detail. Blank set-aside ≠ unrestricted."),
                 "reasons": st.column_config.TextColumn(
                     "Why", width="medium",
                     help="Top fact-based reasons (profile-independent). ● fact · ◐ estimate · ○ not reported. "

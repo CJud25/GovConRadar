@@ -32,7 +32,7 @@ METRIC_COLUMNS: tuple[str, ...] = (
     "surface",
     "snapshot_date",
 )
-GATE_STATES: tuple[str, ...] = ("published", "not_yet_measured", "insufficient_snapshots")
+GATE_STATES: tuple[str, ...] = ("published", "not_yet_measured", "insufficient_snapshots", "suspect_bulk_fill")
 
 LINK_TIERS: tuple[str, ...] = ("High", "Medium", "Low")
 
@@ -67,6 +67,13 @@ def _cfg_float(cfg: Mapping[str, object], key: str) -> float:
     if isinstance(v, bool) or not isinstance(v, (int, float)):
         raise TypeError(f"cfg[{key!r}] must be a number")
     return float(v)
+
+
+def _cfg_bool(cfg: Mapping[str, object], key: str, default: bool) -> bool:
+    v = cfg.get(key, default)
+    if not isinstance(v, bool):
+        raise TypeError(f"cfg[{key!r}] must be a bool")
+    return v
 
 
 def _row(
@@ -119,9 +126,21 @@ def wilson_interval(successes: int, n: int, z: float) -> tuple[float, float]:
 def link_precision_rows(link_labels: pd.DataFrame, cfg: Mapping[str, object]) -> pd.DataFrame:
     """Per link_confidence tier: precision over hand-labeled verdicts, gated on the
     labeled-n floor. `unsure` is excluded from the numerator AND the denominator and
-    disclosed as its own rate; false_link_rate = 1 - precision under the same gate."""
-    floor = _cfg_int(_section(cfg, "link_labels"), "min_labels_per_tier")
+    disclosed as its own rate; false_link_rate = 1 - precision under the same gate.
+
+    BULK-FILL GUARD (G4): a tier that would otherwise publish is REFUSED
+    (gate_state="suspect_bulk_fill") when its filled verdicts are 100% a single
+    labeled_date with zero labeler_notes and zero unsure — the signature of a
+    mechanical tier->label fill, not per-case adjudication. An explicit
+    link_labels.allow_bulk_fill=True in cfg overrides (a deliberate, documented
+    single-sitting session). Presence-gated on the labeled_date/labeler_notes
+    columns: the production loader (labels.ingest.load_link_labels) always carries
+    them; a reduced test frame without them is not guarded."""
+    sec = _section(cfg, "link_labels")
+    floor = _cfg_int(sec, "min_labels_per_tier")
+    allow_bulk_fill = _cfg_bool(sec, "allow_bulk_fill", False)
     z = _cfg_float(cfg, "wilson_z")
+    guard_columns_present = {"labeled_date", "labeler_notes"}.issubset(link_labels.columns)
     rows: list[dict[str, object]] = []
     for tier in LINK_TIERS:
         sub = link_labels[link_labels["link_confidence"].astype(str) == tier] if len(link_labels) else link_labels
@@ -131,7 +150,15 @@ def link_precision_rows(link_labels: pd.DataFrame, cfg: Mapping[str, object]) ->
         unsure = int((verdicts == "unsure").sum())
         labeled_n = correct + incorrect  # unsure excluded from BOTH sides
         verdict_n = labeled_n + unsure
-        if labeled_n >= floor:
+
+        bulk_fill = False
+        if labeled_n >= floor and not allow_bulk_fill and guard_columns_present:
+            filled = verdicts != ""
+            dates = sub.loc[filled, "labeled_date"].astype(str).str.strip()
+            notes = sub.loc[filled, "labeler_notes"].astype(str).str.strip()
+            bulk_fill = unsure == 0 and int((notes != "").sum()) == 0 and int(dates.nunique()) == 1
+
+        if labeled_n >= floor and not bulk_fill:
             precision = correct / labeled_n
             lo, hi = wilson_interval(correct, labeled_n, z)
             rows.append(
@@ -157,17 +184,27 @@ def link_precision_rows(link_labels: pd.DataFrame, cfg: Mapping[str, object]) ->
                 )
             )
         else:
-            note = (
-                f"not yet measured — {labeled_n} of the >={floor} labels the {tier} tier "
-                "needs before a precision number publishes"
-            )
+            if bulk_fill:
+                gate_state = "suspect_bulk_fill"
+                note = (
+                    f"refused — all {labeled_n} filled {tier} verdicts carry a single "
+                    "labeled_date with zero notes and zero unsure (a bulk tier->label fill "
+                    "signature, not per-case adjudication); set link_labels.allow_bulk_fill "
+                    "in config/measurement.yaml only for a deliberate single-sitting session"
+                )
+            else:
+                gate_state = "not_yet_measured"
+                note = (
+                    f"not yet measured — {labeled_n} of the >={floor} labels the {tier} tier "
+                    "needs before a precision number publishes"
+                )
             rows.append(
                 _row(
                     f"link_precision_{tier.lower()}",
                     value=None,
                     n=labeled_n,
                     ci=None,
-                    gate_state="not_yet_measured",
+                    gate_state=gate_state,
                     note=note,
                     surface="app",
                 )
@@ -178,7 +215,7 @@ def link_precision_rows(link_labels: pd.DataFrame, cfg: Mapping[str, object]) ->
                     value=None,
                     n=labeled_n,
                     ci=None,
-                    gate_state="not_yet_measured",
+                    gate_state=gate_state,
                     note=note,
                     surface="app",
                 )
@@ -212,11 +249,13 @@ def link_precision_rows(link_labels: pd.DataFrame, cfg: Mapping[str, object]) ->
 
 # Pinned published-note copy for precision_at_50 (verbatim per the approved plan).
 _PRECISION_AT_50_NOTE = (
-    "share of the disclosed top-50 sample (shipped demo-profile ranking) with positive "
-    "evidence the work continued — recompete, bridge, vehicle migration, sole-source "
-    "follow-on, consolidation/split, or an out-of-scope successor; `ended` requires "
-    "positive evidence; undeterminables excluded and disclosed. Not a win rate. "
-    "Not a probability."
+    "share of the disclosed top-50 sample (the redrawn outcome units — standalone contracts, "
+    "single-award vehicles, and multiple-award vehicle orders kept at order grain — ranked by each "
+    "unit's best cohort order's shipped demo-profile score; still-open vehicles excluded) with "
+    "positive evidence the work continued — recompete, "
+    "bridge, vehicle migration, sole-source follow-on, consolidation/split, or an out-of-scope "
+    "successor; `ended` requires positive evidence; undeterminables excluded and disclosed. "
+    "Not a win rate. Not a probability."
 )
 
 
