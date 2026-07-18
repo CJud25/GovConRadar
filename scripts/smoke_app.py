@@ -63,12 +63,54 @@ def _check_app_boot() -> int:
     return 0
 
 
+def _check_company_form_submit() -> int:
+    """Submit the Company-profile form and assert it does not raise.
+
+    Regression guard for a form-key / session_state-key collision: the profile form's
+    key MUST differ from the "company_profile" key that set_profile() writes into
+    st.session_state (a form's key shares Streamlit's widget/session_state namespace).
+    If they match, submitting the form raises StreamlitAPIException ("... cannot be
+    modified after the widget with key company_profile is instantiated"). The initial-
+    render checks above never click submit, so this interaction needs its own gate.
+    """
+    from streamlit.testing.v1 import AppTest
+
+    app = ROOT / "streamlit_app" / "app.py"
+
+    def _click(page, needle: str) -> bool:
+        for b in page.button:  # form_submit_button is exposed via .button too
+            if needle.lower() in (b.label or "").lower():
+                b.click()
+                return True
+        return False
+
+    page = AppTest.from_file(str(app), default_timeout=90)
+    page.run()
+    page.switch_page("views/company.py")
+    page.run()
+    # Seed the form with the demo profile so submit has a NAICS/capability and proceeds
+    # into set_profile() (a blank form short-circuits before the session_state write).
+    if not _click(page, "Load demo profile"):
+        print("SMOKE FAIL [company form]: 'Load demo profile' button not found", flush=True)
+        return 1
+    page.run()
+    if not _click(page, "Score my pipeline"):
+        print("SMOKE FAIL [company form]: 'Score my pipeline' submit button not found", flush=True)
+        return 1
+    page.run()
+    if page.exception:
+        print(f"SMOKE FAIL [company form submit]: {page.exception}", flush=True)
+        return 1
+    return 0
+
+
 def main() -> int:
-    for step in (_check_config, _check_app_boot):
+    for step in (_check_config, _check_app_boot, _check_company_form_submit):
         rc = step()
         if rc != 0:
             return rc
-    print("smoke: OK -- config loads and the app boots on the committed sample", flush=True)
+    print("smoke: OK -- config loads, the app boots on the committed sample, and the "
+          "company profile form submits", flush=True)
     return 0
 
 

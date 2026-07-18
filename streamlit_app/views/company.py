@@ -69,7 +69,12 @@ if qs2.button("Start blank", width="stretch"):
     st.session_state["profile_draft"] = dict(rescore.BLANK_PROFILE); st.rerun()
 
 # ---- the profile form ----
-with st.form("company_profile"):
+# Form key MUST differ from the "company_profile" session_state key that set_profile()
+# writes below: a form's key shares Streamlit's widget/session_state namespace, so
+# reusing "company_profile" made `st.session_state["company_profile"] = ...` (in
+# set_profile, on submit) raise StreamlitAPIException ("cannot be modified after the
+# widget with key company_profile is instantiated").
+with st.form("company_profile_form"):
     name = st.text_input("Company name", value=draft.get("company_name", ""), placeholder="Acme Cyber, LLC")
     naics_sel = st.multiselect(
         "Preferred NAICS  *", naics_opts, default=[n for n in draft.get("preferred_naics", []) if n in naics_opts],
