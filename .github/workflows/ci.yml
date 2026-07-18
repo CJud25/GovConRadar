@@ -19,6 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        # Full history (not the default shallow depth-1): the gitleaks secret-scan
+        # step diffs a commit range (head^..head on a PR), so the parent commit must
+        # be present in the checkout or gitleaks aborts with "unknown revision".
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
