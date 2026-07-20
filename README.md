@@ -263,6 +263,7 @@ each has a deep-link URL, target filename, and viewport, so dropping the PNGs in
 
 - [Architecture](docs/ARCHITECTURE.md) — data flow from USAspending/SAM.gov → star schema → {Power BI, Streamlit}
 - [Standard Operating Procedure (v2.1)](docs/SOP_Recompete_Radar_v2.1.md) — controlled refresh/validate/deploy runbook (supersedes the earlier informal SOP)
+- [Daily pulls runbook](docs/daily_pulls.md) — how to pull raw data daily from USAspending + SAM.gov (`scripts/daily_pull.py`) and wire a scheduler
 - [Data dictionary](docs/DATA_DICTIONARY.md) — every table/column, with the v2 additions and legacy notes
 - [Data provenance](docs/DATA_PROVENANCE.md) — where the numbers come from; sample-data synthesis
 - [Demo script](docs/DEMO_SCRIPT.md) — a 5-minute buyer walkthrough with the three "aha" beats
