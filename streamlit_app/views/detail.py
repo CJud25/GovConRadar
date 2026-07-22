@@ -7,19 +7,21 @@ from datetime import date
 import pandas as pd
 import streamlit as st
 
-from components import briefing, charts, rescore, shell, theme
+from components import briefing, charts, radar_handoff, rescore, shell, theme
 from components import eligibility_lane as el
 from components import price_to_win as ptw
 from components import reason_codes as rc
 from components.data import (
     DISPLACEMENT_SORT_LABEL,
     PURSUIT_SORT_LABEL,
+    SAMPLE_DIR,
     displacement_sort,
     displacement_sort_ready,
     get_context,
     notice_response_days,
     page_header,
     profile_is_custom,
+    resolve_data_dir,
     usd,
 )
 from labels.taxonomy import SURFACE_LANGUAGE
@@ -582,6 +584,26 @@ brief_html = briefing.build_brief_html(ctx, row, sel_cid, date.today())
 st.download_button("Download Capture Brief (print-ready HTML → save as PDF)",
                    brief_html.encode("utf-8"),
                    file_name=f"capture_brief_{sel_cid}.html", mime="text/html")
+
+# ---- ReconOps handoff (radar-handoff/v1 — pure builder in components/radar_handoff;
+# this view only decides what to render). legacy_synthetic distinguishes the seeded
+# data/sample/ subsample (real USAspending data) from the legacy fully-synthetic bundle
+# streamlit_app/assets/sample_data/ — both resolve to ctx["mode"] == "sample".
+_handoff_dir, _handoff_mode = resolve_data_dir()
+_handoff_payload = radar_handoff.build_radar_handoff(
+    row, as_of=ctx["as_of"], mode=_handoff_mode, legacy_synthetic=_handoff_dir == SAMPLE_DIR
+)
+if _handoff_payload is not None:
+    st.download_button(
+        "Download ReconOps handoff (radar-handoff/v1 JSON)",
+        radar_handoff.radar_handoff_json_bytes(_handoff_payload),
+        file_name=f"radar_handoff_{sel_cid}.json", mime="application/json",
+    )
+    st.caption("Values are snapshot claims for the ReconOps Opportunity Packet's Origin "
+               "section — ReconOps re-verifies live; nothing here feeds its assessments.")
+else:
+    st.caption("ReconOps handoff unavailable for this candidate — missing PIID or an "
+               "unrecognized snapshot date.")
 
 st.info("Pursuit score, priority tier, capture phase, and recompete windows are **estimates** — "
         "see the Data Quality & Methodology page.")
