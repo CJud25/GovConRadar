@@ -117,7 +117,7 @@ py scripts/validate_data.py            # data/powerbi/  (SKIPs if absent)
 synthetic bundle). The full snapshot is **not committed** as part of the data diet — fetch it with
 `py scripts/download_data.py`; a fresh clone runs on `data/sample/`.
 
-The full ETL pipeline (`py run_pipeline.py`) needs local bulk CSV exports; the app and validators run
+The full ETL pipeline (`run_pipeline.py`, private — not shipped in this public repo) needs local bulk CSV exports; the app and validators run
 without it against the shipped star schema.
 
 ## Query the data model in SQL
@@ -200,6 +200,11 @@ obligation), while the 12-month expiry window is an **estimate** recomputed to t
 ## What's new — honesty-first reads (2026-07)
 
 Each addition **refuses to guess** where the public data won't support a claim — the whole brand, made visible.
+
+**ReconRadar handoff** (2026-07-22) — Contract Detail exports a cited, score-free
+`radar-handoff/v1` JSON snapshot (facts only — no score, tier, or `pursuit_score` can
+leak into it) for intake by [ReconRadar](https://github.com/CJud25/ReconRadar), the
+downstream Opportunity-Packet app, which re-pulls the contract facts live on arrival.
 
 **2.4.0 → 2.8.0 — forward signals beside the score, never inside it** (2026-07-15/16):
 `pursuit_score`, the weights, and every tier are **byte-identical** across all five releases

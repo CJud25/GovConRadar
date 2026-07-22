@@ -1,6 +1,7 @@
 """Contract Detail — per-candidate profile, scoring breakdown, linked notices,
 the incumbent's other contracts, and a downloadable one-page Capture Brief.
 Opens directly from a ?cid= deep link (Explorer row-click)."""
+
 import html
 from datetime import date
 
@@ -43,8 +44,13 @@ if cand.empty:
     st.stop()
 
 ids = cand["candidate_id"].astype(str).tolist()
-labels = {str(r["candidate_id"]): f"{str(r.get('title_display') or '[Untitled]')[:60]} — {r.get('subagency', '')} [{r['candidate_id']}]"
-          for _, r in cand.iterrows()}
+labels = {
+    str(
+        r["candidate_id"]
+    ): f"{str(r.get('title_display') or '[Untitled]')[:60]} — {r.get('subagency', '')} [{r['candidate_id']}]"
+    for _, r in cand.iterrows()
+}
+
 
 def _months(days):
     return days / MONTHS if pd.notna(days) else None
@@ -69,18 +75,25 @@ def _render_competitive_price_range(row, ctx, sel_cid):
     a separate line (never blended), and a refusal state below the comparables floor."""
     st.divider()
     st.markdown('<div class="rr-title" style="font-size:18px">Competitive Price Range</div>', unsafe_allow_html=True)
-    st.caption("A range of what **comparable work has historically been _won_ for**, as an annual run-rate from real "
-               "USAspending awards. **Not a price-to-win** — competitor bids are never public, so this is the spread of "
-               "past *winning* awards, not a bid recommendation.")
+    st.caption(
+        "A range of what **comparable work has historically been _won_ for**, as an annual run-rate from real "
+        "USAspending awards. **Not a price-to-win** — competitor bids are never public, so this is the spread of "
+        "past *winning* awards, not a bid recommendation."
+    )
 
     comps_all = ctx.get("comparables")
-    my_comps = (comps_all[comps_all["candidate_id"].astype(str) == str(sel_cid)]
-                if comps_all is not None and not comps_all.empty and "candidate_id" in comps_all else pd.DataFrame())
+    my_comps = (
+        comps_all[comps_all["candidate_id"].astype(str) == str(sel_cid)]
+        if comps_all is not None and not comps_all.empty and "candidate_id" in comps_all
+        else pd.DataFrame()
+    )
 
     if row.get("ptw_basis") == "insufficient" or my_comps.empty:
-        st.warning("**Insufficient comparables to estimate.** Fewer than the minimum number of similar historical "
-                   "awards (same NAICS / PSC class / size band) were found, so we won't invent a range. As more "
-                   "fiscal-year data is loaded, or for better-covered NAICS, a range appears here.")
+        st.warning(
+            "**Insufficient comparables to estimate.** Fewer than the minimum number of similar historical "
+            "awards (same NAICS / PSC class / size band) were found, so we won't invent a range. As more "
+            "fiscal-year data is loaded, or for better-covered NAICS, a range appears here."
+        )
         return
 
     incumbent_rr = row.get("ptw_incumbent_runrate")
@@ -89,20 +102,41 @@ def _render_competitive_price_range(row, ctx, sel_cid):
 
     # ---- live controls (all OFF/neutral by default) ----
     ctrl1, ctrl2 = st.columns([1, 1])
-    term = ctrl1.slider("Assume follow-on term (years)", 1, 10, 1,
-                        help="1 = show the annual run-rate. Higher projects a full-term total, escalating each "
-                             "out-year at the BLS ECI (Professional & Technical Services) rate — a labeled assumption.")
-    competition = ctrl2.radio("Competition assumption", ptw.COMPETITION_CHOICES, horizontal=False,
-                              help="A disclosed scenario nudge, not a measured elasticity — no losing-bid data exists.")
-    id_label = {str(r["comp_award_id"]): f"{r.get('comp_piid', r['comp_award_id'])} · {theme.usd_short(r['comp_run_rate'])}/yr"
-                for _, r in my_comps.iterrows()}
-    excluded = st.multiselect("Exclude comparables you know are a poor fit", list(id_label), format_func=lambda i: id_label[i])
+    term = ctrl1.slider(
+        "Assume follow-on term (years)",
+        1,
+        10,
+        1,
+        help="1 = show the annual run-rate. Higher projects a full-term total, escalating each "
+        "out-year at the BLS ECI (Professional & Technical Services) rate — a labeled assumption.",
+    )
+    competition = ctrl2.radio(
+        "Competition assumption",
+        ptw.COMPETITION_CHOICES,
+        horizontal=False,
+        help="A disclosed scenario nudge, not a measured elasticity — no losing-bid data exists.",
+    )
+    id_label = {
+        str(r["comp_award_id"]): f"{r.get('comp_piid', r['comp_award_id'])} · {theme.usd_short(r['comp_run_rate'])}/yr"
+        for _, r in my_comps.iterrows()
+    }
+    excluded = st.multiselect(
+        "Exclude comparables you know are a poor fit", list(id_label), format_func=lambda i: id_label[i]
+    )
 
-    res = ptw.recompute(my_comps, excluded_ids=excluded, competition=competition, term_years=term,
-                        match_tier=row.get("ptw_match_tier"), incumbent_runrate=incumbent_rr)
+    res = ptw.recompute(
+        my_comps,
+        excluded_ids=excluded,
+        competition=competition,
+        term_years=term,
+        match_tier=row.get("ptw_match_tier"),
+        incumbent_runrate=incumbent_rr,
+    )
     if res.get("basis") == "insufficient":
-        st.warning(f"After excluding those comparables, only {res['n']} remain — below the floor to estimate. "
-                   "Remove an exclusion to see the range.")
+        st.warning(
+            f"After excluding those comparables, only {res['n']} remain — below the floor to estimate. "
+            "Remove an exclusion to see the range."
+        )
         return
 
     projected = bool(term and term > 1)
@@ -123,13 +157,21 @@ def _render_competitive_price_range(row, ctx, sel_cid):
     ds = res["data_strength"]
     spread = (res["annual_high"] - res["annual_low"]) / res["annual_median"] if res["annual_median"] else 0
     # Weak explains itself so "Weak — based on 31 comparables" doesn't read as a contradiction.
-    meaning = {"Strong": "tight, well-matched set", "Moderate": "usable, some spread/mismatch",
-               "Weak": "wide dispersion — directional only"}.get(ds, "")
-    st.markdown(f"{strengths.get(ds, '⚪')} **Data strength: {ds}**"
-                + (f" ({meaning})" if meaning else "")
-                + f" — based on **{res['n']} comparables**, IQR spread ±{spread * 50:.0f}%. "
-                + ("Median 80% interval "
-                   f"{theme.usd_short(res['ci_low'])}–{theme.usd_short(res['ci_high'])}/yr." if res['n'] else ""))
+    meaning = {
+        "Strong": "tight, well-matched set",
+        "Moderate": "usable, some spread/mismatch",
+        "Weak": "wide dispersion — directional only",
+    }.get(ds, "")
+    st.markdown(
+        f"{strengths.get(ds, '⚪')} **Data strength: {ds}**"
+        + (f" ({meaning})" if meaning else "")
+        + f" — based on **{res['n']} comparables**, IQR spread ±{spread * 50:.0f}%. "
+        + (
+            f"Median 80% interval {theme.usd_short(res['ci_low'])}–{theme.usd_short(res['ci_high'])}/yr."
+            if res["n"]
+            else ""
+        )
+    )
 
     # incumbent as a SEPARATE reference line (never blended into the number)
     if incumbent_rr:
@@ -143,11 +185,19 @@ def _render_competitive_price_range(row, ctx, sel_cid):
         st.markdown(f"📍 **Incumbent run-rate: {theme.usd_short(incumbent_rr)}/yr**{note}.")
 
     st.plotly_chart(
-        charts.ptw_strip(my_comps[~my_comps["comp_award_id"].astype(str).isin({str(x) for x in excluded})],
-                         res["annual_low"], res["annual_median"], res["annual_high"], incumbent_rr),
-        width="stretch")
-    st.caption("Each dot is a comparable award's **actual** historical run-rate (a fact). The shaded band and median "
-               "line reflect your current assumptions — so with a competition adjustment on, the band may sit off the dots.")
+        charts.ptw_strip(
+            my_comps[~my_comps["comp_award_id"].astype(str).isin({str(x) for x in excluded})],
+            res["annual_low"],
+            res["annual_median"],
+            res["annual_high"],
+            incumbent_rr,
+        ),
+        width="stretch",
+    )
+    st.caption(
+        "Each dot is a comparable award's **actual** historical run-rate (a fact). The shaded band and median "
+        "line reflect your current assumptions — so with a competition adjustment on, the band may sit off the dots."
+    )
 
     with st.expander(f"Why this range — {res['n']} comparable awards + how to read it"):
         st.markdown(
@@ -156,17 +206,32 @@ def _render_competitive_price_range(row, ctx, sel_cid):
             f"- **Match tier {row.get('ptw_match_tier', '—')}** · pricing mix: {res['pricing_mix']} · "
             f"**{res['pct_in_progress'] * 100:.0f}%** are still in-progress (their obligated-to-date understates final value; "
             f"we annualize on elapsed time to correct for it).\n"
-            f"- Each row links to USAspending — click through and re-derive it yourself.")
+            f"- Each row links to USAspending — click through and re-derive it yourself."
+        )
         show = my_comps.copy()
         show["run_rate"] = show["comp_run_rate"].map(theme.usd_short)
         show["USAspending"] = "https://www.usaspending.gov/award/" + show["comp_award_id"].astype(str)
-        cols = {"comp_piid": "PIID", "comp_agency": "DoD Component", "comp_psc": "PSC", "run_rate": "Run-rate/yr",
-                "comp_in_progress": "In progress", "comp_offers": "Offers", "match_tier": "Tier", "USAspending": "Link"}
+        cols = {
+            "comp_piid": "PIID",
+            "comp_agency": "DoD Component",
+            "comp_psc": "PSC",
+            "run_rate": "Run-rate/yr",
+            "comp_in_progress": "In progress",
+            "comp_offers": "Offers",
+            "match_tier": "Tier",
+            "USAspending": "Link",
+        }
         show = show[[c for c in cols if c in show.columns]].rename(columns=cols)
-        st.dataframe(show, hide_index=True, width="stretch",
-                     column_config={"Link": st.column_config.LinkColumn("USAspending", display_text="open ↗")})
-    st.caption("🔒 Estimate — a market-based range from public data, not certified cost or pricing data (FAR 15.4). "
-               f"Assumptions: {competition.lower()}" + (f", {term}-yr term." if projected else ", annual run-rate."))
+        st.dataframe(
+            show,
+            hide_index=True,
+            width="stretch",
+            column_config={"Link": st.column_config.LinkColumn("USAspending", display_text="open ↗")},
+        )
+    st.caption(
+        "🔒 Estimate — a market-based range from public data, not certified cost or pricing data (FAR 15.4). "
+        f"Assumptions: {competition.lower()}" + (f", {term}-yr term." if projected else ", annual run-rate.")
+    )
 
 
 def _render_obligation_pace(row, as_of):
@@ -182,19 +247,25 @@ def _render_obligation_pace(row, as_of):
     st.markdown('<div class="rr-title" style="font-size:18px">Obligation pace</div>', unsafe_allow_html=True)
 
     if basis == "insufficient":
-        st.info("**Obligation pace not measurable.** This order's ceiling (base + all options) isn't reported, "
-                "it's a parent vehicle, its period-of-performance dates are missing, or it's a net deobligation — "
-                "so we don't read a pace. Verify the obligations on USAspending.")
+        st.info(
+            "**Obligation pace not measurable.** This order's ceiling (base + all options) isn't reported, "
+            "it's a parent vehicle, its period-of-performance dates are missing, or it's a net deobligation — "
+            "so we don't read a pace. Verify the obligations on USAspending."
+        )
         return
     if basis == "ceiling_exceeded":
         shown = "≥10× ceiling" if (pd.notna(cr) and float(cr) >= 10) else (f"{float(cr):.0%}" if pd.notna(cr) else "—")
-        st.caption(f"⚠ **Obligated exceeds the recorded ceiling ({shown})** — the ceiling field is unreliable for "
-                   "this order, so we don't read a pace. Shown as a fact, not a pace.")
+        st.caption(
+            f"⚠ **Obligated exceeds the recorded ceiling ({shown})** — the ceiling field is unreliable for "
+            "this order, so we don't read a pace. Shown as a fact, not a pace."
+        )
         return
     if basis == "fully_funded":
         pct = f"{float(cr):.0%}" if pd.notna(cr) else "—"
-        st.caption(f"🔒 **Fully obligated (~{pct} of ceiling)** — no headroom left to pace against, so obligation "
-                   "pace isn't informative here. Shown as a fact, no band.")
+        st.caption(
+            f"🔒 **Fully obligated (~{pct} of ceiling)** — no headroom left to pace against, so obligation "
+            "pace isn't informative here. Shown as a fact, no band."
+        )
         return
 
     # measured — the only branch that draws a band
@@ -204,17 +275,19 @@ def _render_obligation_pace(row, as_of):
     chip_cls = theme.BURN_CHIP.get(band, "chip-muted")
     st.markdown(
         f'<span class="chip {chip_cls}">{theme.BURN_GLYPHS.get(band, "")} '
-        f'{html.escape(theme.BURN_LABELS.get(band, "—"))}</span>',
+        f"{html.escape(theme.BURN_LABELS.get(band, '—'))}</span>",
         unsafe_allow_html=True,
     )
     m1, m2 = st.columns(2)
     m1.metric("Ceiling obligated", f"{float(cr):.0%}")
     m2.metric("Clock elapsed", f"{time_ratio:.0%}")
     st.plotly_chart(charts.burn_pressure_bar(float(cr), time_ratio, band), width="stretch")
-    st.caption("Both figures are facts from USAspending; the pace band is the estimate (±0.20 asserted-prior "
-               "thresholds). Obligation pace reflects the **funding profile** (fully-funded awards obligate early; "
-               "incremental awards in tranches), **not** the rate of spend, and does **not** forecast a recompete. "
-               f"As of {as_of}.")
+    st.caption(
+        "Both figures are facts from USAspending; the pace band is the estimate (±0.20 asserted-prior "
+        "thresholds). Obligation pace reflects the **funding profile** (fully-funded awards obligate early; "
+        "incremental awards in tranches), **not** the rate of spend, and does **not** forecast a recompete. "
+        f"As of {as_of}."
+    )
 
 
 def _render_mods_signals(row):
@@ -237,9 +310,7 @@ def _render_mods_signals(row):
         if isinstance(tdate, str) and tdate.strip():
             bits.append(html.escape(tdate.strip()))
         suffix = f" ({', '.join(bits)})" if bits else ""
-        chips.append(
-            f'<span class="chip chip-red">◐ Terminated (verify) — {html.escape(kind)}{suffix}</span>'
-        )
+        chips.append(f'<span class="chip chip-red">◐ Terminated (verify) — {html.escape(kind)}{suffix}</span>')
     if _mod_true(row.get("bridge_flag")):
         # Chip text from the ONE outcome-taxonomy language source (S27).
         chips.append(f'<span class="chip chip-amber">◐ {html.escape(SURFACE_LANGUAGE["extension_bridge"])}</span>')
@@ -250,8 +321,10 @@ def _render_mods_signals(row):
     if not chips:
         return
     st.divider()
-    st.markdown('<div class="rr-title" style="font-size:18px">Termination &amp; modification signals</div>',
-                unsafe_allow_html=True)
+    st.markdown(
+        '<div class="rr-title" style="font-size:18px">Termination &amp; modification signals</div>',
+        unsafe_allow_html=True,
+    )
     st.markdown("  ".join(chips), unsafe_allow_html=True)
     st.caption(f"◐ Estimate — {MODS_DISCLOSURE}")
 
@@ -284,17 +357,21 @@ def _render_displacement_lane(row):
     slugs = [s for s in str(row.get("displacement_signals", "")).split("+") if s in _DISPLACEMENT_LABELS]
     chips = [f'<span class="chip chip-amber">◐ {html.escape(_DISPLACEMENT_LABELS[s])}</span>' for s in slugs]
     st.divider()
-    st.markdown('<div class="rr-title" style="font-size:18px">Incumbent displacement signals</div>',
-                unsafe_allow_html=True)
-    st.markdown(f"**{int(k)} of {int(n)}** readable signals fired:&nbsp;&nbsp;" + "  ".join(chips),
-                unsafe_allow_html=True)
+    st.markdown(
+        '<div class="rr-title" style="font-size:18px">Incumbent displacement signals</div>', unsafe_allow_html=True
+    )
+    st.markdown(
+        f"**{int(k)} of {int(n)}** readable signals fired:&nbsp;&nbsp;" + "  ".join(chips), unsafe_allow_html=True
+    )
     unread_slugs = [s for s in str(row.get("displacement_unread", "")).split("+") if s in _DISPLACEMENT_LABELS]
     unread_note = ""
     if unread_slugs:
         unread_names = ", ".join(_DISPLACEMENT_LABELS[s].lower() for s in unread_slugs)
         unread_note = f" Not readable on this record: {unread_names}."
-    st.caption("◐ Estimate — a categorical lane over baked public-data signals; it is never blended into "
-               f"the pursuit score.{unread_note} {MODS_DISCLOSURE}")
+    st.caption(
+        "◐ Estimate — a categorical lane over baked public-data signals; it is never blended into "
+        f"the pursuit score.{unread_note} {MODS_DISCLOSURE}"
+    )
 
 
 def _linked_notice_days(ctx, sel_cid):
@@ -315,8 +392,9 @@ def _linked_notice_days(ctx, sel_cid):
     notices = ctx.get("notices")
     if notices is None or notices.empty or "notice_id" not in notices or "response_deadline" not in notices:
         return None
-    linked = brow.merge(notices, left_on=brow["linked_notice_id"].astype(str),
-                        right_on=notices["notice_id"].astype(str), how="left")
+    linked = brow.merge(
+        notices, left_on=brow["linked_notice_id"].astype(str), right_on=notices["notice_id"].astype(str), how="left"
+    )
     if linked.empty or "response_deadline" not in linked:
         return None
     today = date.today()
@@ -363,34 +441,46 @@ if qp_cid not in ids:
     launcher_order = PURSUIT_SORT_LABEL
     if displacement_sort_ready(cand):
         launcher_order = st.radio(
-            "Rank by", [PURSUIT_SORT_LABEL, DISPLACEMENT_SORT_LABEL], horizontal=True,
+            "Rank by",
+            [PURSUIT_SORT_LABEL, DISPLACEMENT_SORT_LABEL],
+            horizontal=True,
             key="detail_top5_order",
             help="A view-layer ordering lens — scores and tiers never move. "
-                 f"'{DISPLACEMENT_SORT_LABEL}' surfaces bridge-flagged, sole-offer, expiring "
-                 "incumbents first (observed signal count, pursuit score as tie-break); rows "
-                 "where the lane is unreadable sort last. ◐ estimate lane.")
+            f"'{DISPLACEMENT_SORT_LABEL}' surfaces bridge-flagged, sole-offer, expiring "
+            "incumbents first (observed signal count, pursuit score as tie-break); rows "
+            "where the lane is unreadable sort last. ◐ estimate lane.",
+        )
     if launcher_order == DISPLACEMENT_SORT_LABEL:
         _top5 = displacement_sort(cand).head(5)
-        st.caption("Pick a recompete candidate to open its Capture Brief — ranked by observed "
-                   "displacement signals (pursuit score as tie-break; an ordering lens, the "
-                   "scores themselves are unchanged) — or search the full pipeline below.")
+        st.caption(
+            "Pick a recompete candidate to open its Capture Brief — ranked by observed "
+            "displacement signals (pursuit score as tie-break; an ordering lens, the "
+            "scores themselves are unchanged) — or search the full pipeline below."
+        )
     else:
         _top5 = cand.sort_values("pursuit_score", ascending=False).head(5)
-        st.caption("Pick a recompete candidate to open its Capture Brief — ranked by pursuit score, "
-                   "or search the full pipeline below.")
+        st.caption(
+            "Pick a recompete candidate to open its Capture Brief — ranked by pursuit score, "
+            "or search the full pipeline below."
+        )
     for _, r in _top5.iterrows():
         cid = str(r["candidate_id"])
         col_row, col_btn = st.columns([5, 1])
         col_row.markdown(
-            shell.radar_row(r.get("title_display") or cid, r.get("subagency", "—"),
-                            _months(r.get("days_until_expiration")), r.get("total_obligated_amount")),
+            shell.radar_row(
+                r.get("title_display") or cid,
+                r.get("subagency", "—"),
+                _months(r.get("days_until_expiration")),
+                r.get("total_obligated_amount"),
+            ),
             unsafe_allow_html=True,
         )
         if col_btn.button("Open →", key=f"open_{cid}"):
             st.query_params["cid"] = cid
             st.rerun()
-    pick = st.selectbox("…or search all candidates", ["—"] + ids,
-                        format_func=lambda c: labels.get(c, c) if c != "—" else "—")
+    pick = st.selectbox(
+        "…or search all candidates", ["—"] + ids, format_func=lambda c: labels.get(c, c) if c != "—" else "—"
+    )
     if pick != "—":
         st.query_params["cid"] = pick
         st.rerun()
@@ -398,8 +488,7 @@ if qp_cid not in ids:
 
 # Valid cid → the existing profile rendering. Keep a selectbox so users can switch
 # candidates without going back to the launcher.
-sel_cid = st.selectbox("Recompete candidate", ids, index=ids.index(qp_cid),
-                       format_func=lambda c: labels.get(c, c))
+sel_cid = st.selectbox("Recompete candidate", ids, index=ids.index(qp_cid), format_func=lambda c: labels.get(c, c))
 st.query_params["cid"] = sel_cid  # keep the URL shareable/bookmarkable
 row = cand[cand["candidate_id"].astype(str) == sel_cid].iloc[0]
 
@@ -409,20 +498,23 @@ months_left = _months(row.get("days_until_expiration"))
 # Always the cleaned display title — the raw contract_title can be an 800-char FPDS
 # record dump with a vendor address; it stays behind the source_url link only.
 _disp_title = str(row.get("title_display") or "[Untitled award — see source record]")
-st.markdown(f'<div class="rr-title" style="font-size:20px">{html.escape(_disp_title)}</div>',
-            unsafe_allow_html=True)
+st.markdown(f'<div class="rr-title" style="font-size:20px">{html.escape(_disp_title)}</div>', unsafe_allow_html=True)
 
 # ---- status chip + verify callout ----
 _status = str(row.get("candidate_status", ""))
 _status_chip = {
     "active": ('<span class="rr-badge live">ACTIVE</span>', None),
     "expired_grace": ('<span class="rr-badge sample">EXPIRED ≤90d — VERIFY</span>', None),
-    "expired_stale": ('<span class="rr-badge" style="background:rgba(201,203,207,0.3);color:#6b6e73">DATA GAP — EXPIRED &gt;90d</span>',
-                      "This award expired more than 90 days ago and is quarantined from the pipeline "
-                      "(likely already re-awarded). Verify current status on SAM.gov before pursuing."),
+    "expired_stale": (
+        '<span class="rr-badge" style="background:rgba(201,203,207,0.3);color:#6b6e73">DATA GAP — EXPIRED &gt;90d</span>',
+        "This award expired more than 90 days ago and is quarantined from the pipeline "
+        "(likely already re-awarded). Verify current status on SAM.gov before pursuing.",
+    ),
 }.get(_status, ("", None))
-st.markdown(shell.runway_chip(months_left) + "  " + shell.runway_bar(months_left)
-            + "  " + _status_chip[0], unsafe_allow_html=True)
+st.markdown(
+    shell.runway_chip(months_left) + "  " + shell.runway_bar(months_left) + "  " + _status_chip[0],
+    unsafe_allow_html=True,
+)
 if _status_chip[1]:
     _sam = shell.sam_gov_search_url(row.get("piid"), row.get("title_display"))
     st.warning(_status_chip[1], icon="⚠️")
@@ -470,7 +562,7 @@ chips = rc.detail_chips(row, ctx["profile"])
 summary = rc.engine.summary_chips(chips)  # executive row: context/tier-6 chips dropped
 st.markdown(
     '<div class="rr-title" style="font-size:16px">Why this scores '
-    f'{row.get("pursuit_score", float("nan")):.0f} - {str(row.get("priority_tier", "-"))}</div>',
+    f"{row.get('pursuit_score', float('nan')):.0f} - {str(row.get('priority_tier', '-'))}</div>",
     unsafe_allow_html=True,
 )
 if summary and summary[0].code != "empty_state":
@@ -505,19 +597,27 @@ left, right = st.columns([3, 2])
 with left:
     st.markdown("**Contract profile**")
     fields = [
-        ("PIID", "piid"), ("DoD Component", "subagency"),
-        ("Incumbent", "incumbent_vendor"), ("UEI", "incumbent_uei"), ("NAICS", "naics"), ("PSC", "psc"),
-        ("Award type", "award_type"), ("Extent competed", "extent_competed"),
+        ("PIID", "piid"),
+        ("DoD Component", "subagency"),
+        ("Incumbent", "incumbent_vendor"),
+        ("UEI", "incumbent_uei"),
+        ("NAICS", "naics"),
+        ("PSC", "psc"),
+        ("Award type", "award_type"),
+        ("Extent competed", "extent_competed"),
         ("Place of performance", "place_of_performance_state"),
-        ("Current end date", "current_end_date"), ("Potential end date", "potential_end_date"),
-        ("Expiration basis", "expiration_date_basis"), ("Capture phase", "capture_phase"),
+        ("Current end date", "current_end_date"),
+        ("Potential end date", "potential_end_date"),
+        ("Expiration basis", "expiration_date_basis"),
+        ("Capture phase", "capture_phase"),
         ("Recompete window start (est.)", "estimated_recompete_window_start"),
         ("Recompete window end (est.)", "estimated_recompete_window_end"),
         ("Classification confidence", "classification_confidence"),
         ("Data quality notes", "data_quality_notes"),
     ]
-    st.table({"Field": [n for n, k in fields if k in row.index],
-              "Value": [str(row[k]) for n, k in fields if k in row.index]})
+    st.table(
+        {"Field": [n for n, k in fields if k in row.index], "Value": [str(row[k]) for n, k in fields if k in row.index]}
+    )
     # (The per-record data-quality flags are now surfaced as honesty-glyph reason chips above — the
     #  reason-codes data-gap/quality chips carry the same five flag_* facts, so the old duplicate
     #  data-quality caption block was subsumed and removed here per the Subtraction principle.)
@@ -530,36 +630,59 @@ with left:
 with right:
     if not brk.empty:
         st.plotly_chart(charts.scoring_breakdown_bar(brk), width="stretch")
-        st.caption("Blue components move when you edit your company profile; gray ones are facts of the "
-                   "contract itself.")
+        st.caption(
+            "Blue components move when you edit your company profile; gray ones are facts of the contract itself."
+        )
     st.markdown("**Linked opportunity notices**")
     bridge = ctx["bridge"]
-    brow = bridge[bridge["candidate_id"].astype(str) == sel_cid] if not bridge.empty and "candidate_id" in bridge else bridge.head(0)
+    brow = (
+        bridge[bridge["candidate_id"].astype(str) == sel_cid]
+        if not bridge.empty and "candidate_id" in bridge
+        else bridge.head(0)
+    )
     if "link_confidence" in brow:
         brow = brow[brow["link_confidence"] != "No Match"]
     if brow.empty:
-        st.caption("No linked SAM.gov notice for this contract. Absence is **no signal** — solicitations are "
-                   "usually posted only months before award (see Methodology).")
+        st.caption(
+            "No linked SAM.gov notice for this contract. Absence is **no signal** — solicitations are "
+            "usually posted only months before award (see Methodology)."
+        )
     else:
         notices = ctx.get("notices")
         if notices is not None and not notices.empty and "notice_id" in notices:
-            linked = brow.merge(notices, left_on=brow["linked_notice_id"].astype(str),
-                                right_on=notices["notice_id"].astype(str), how="left")
+            linked = brow.merge(
+                notices,
+                left_on=brow["linked_notice_id"].astype(str),
+                right_on=notices["notice_id"].astype(str),
+                how="left",
+            )
         else:
             linked = brow.copy()
         conf_order = pd.CategoricalDtype(["High", "Medium", "Low"], ordered=True)
         if "link_confidence" in linked:
             linked["link_confidence"] = linked["link_confidence"].astype(conf_order)
             linked = linked.sort_values("link_confidence")
-        cols = {"link_confidence": "Confidence", "title": "Notice title", "notice_type": "Type",
-                "posted_date": "Posted", "response_deadline": "Response due",
-                "solicitation_number": "Solicitation #", "source_url": "SAM.gov",
-                "link_reason": "Match basis"}
+        cols = {
+            "link_confidence": "Confidence",
+            "title": "Notice title",
+            "notice_type": "Type",
+            "posted_date": "Posted",
+            "response_deadline": "Response due",
+            "solicitation_number": "Solicitation #",
+            "source_url": "SAM.gov",
+            "link_reason": "Match basis",
+        }
         show = linked[[c for c in cols if c in linked.columns]].rename(columns=cols)
-        st.dataframe(show, hide_index=True, width="stretch",
-                     column_config={"SAM.gov": st.column_config.LinkColumn("SAM.gov", display_text="open ↗")})
-        st.caption("Fuzzy-matched from real SAM.gov notices — **treat Low confidence as a lead to verify**, "
-                   "not a confirmed recompete.")
+        st.dataframe(
+            show,
+            hide_index=True,
+            width="stretch",
+            column_config={"SAM.gov": st.column_config.LinkColumn("SAM.gov", display_text="open ↗")},
+        )
+        st.caption(
+            "Fuzzy-matched from real SAM.gov notices — **treat Low confidence as a lead to verify**, "
+            "not a confirmed recompete."
+        )
 
 # ---- other contracts by this incumbent ----
 incumbent = row.get("incumbent_vendor")
@@ -567,11 +690,22 @@ if incumbent and "incumbent_vendor" in cand:
     others = cand[(cand["incumbent_vendor"] == incumbent) & (cand["candidate_id"].astype(str) != sel_cid)]
     if not others.empty:
         st.markdown(f"**Other recompete candidates held by {html.escape(str(incumbent))}** ({len(others):,})")
-        ocols = [c for c in ["title_display", "subagency", "selected_expiration_date",
-                             "total_obligated_amount", "pursuit_score", "priority_tier"] if c in others.columns]
+        ocols = [
+            c
+            for c in [
+                "title_display",
+                "subagency",
+                "selected_expiration_date",
+                "total_obligated_amount",
+                "pursuit_score",
+                "priority_tier",
+            ]
+            if c in others.columns
+        ]
         st.dataframe(
             others[ocols].sort_values("total_obligated_amount", ascending=False).head(25),
-            hide_index=True, width="stretch",
+            hide_index=True,
+            width="stretch",
             column_config={
                 "total_obligated_amount": st.column_config.NumberColumn("Est. value", format="$%d"),
                 "pursuit_score": st.column_config.ProgressColumn("Score", min_value=0, max_value=100, format="%d"),
@@ -581,11 +715,14 @@ if incumbent and "incumbent_vendor" in cand:
 
 # ---- Capture Brief (evidence-contract renderer — src/briefing via the ONE adapter) ----
 brief_html = briefing.build_brief_html(ctx, row, sel_cid, date.today())
-st.download_button("Download Capture Brief (print-ready HTML → save as PDF)",
-                   brief_html.encode("utf-8"),
-                   file_name=f"capture_brief_{sel_cid}.html", mime="text/html")
+st.download_button(
+    "Download Capture Brief (print-ready HTML → save as PDF)",
+    brief_html.encode("utf-8"),
+    file_name=f"capture_brief_{sel_cid}.html",
+    mime="text/html",
+)
 
-# ---- ReconOps handoff (radar-handoff/v1 — pure builder in components/radar_handoff;
+# ---- ReconRadar handoff (radar-handoff/v1 — pure builder in components/radar_handoff;
 # this view only decides what to render). legacy_synthetic distinguishes the seeded
 # data/sample/ subsample (real USAspending data) from the legacy fully-synthetic bundle
 # streamlit_app/assets/sample_data/ — both resolve to ctx["mode"] == "sample".
@@ -595,15 +732,19 @@ _handoff_payload = radar_handoff.build_radar_handoff(
 )
 if _handoff_payload is not None:
     st.download_button(
-        "Download ReconOps handoff (radar-handoff/v1 JSON)",
+        "Download ReconRadar handoff (radar-handoff/v1 JSON)",
         radar_handoff.radar_handoff_json_bytes(_handoff_payload),
-        file_name=f"radar_handoff_{sel_cid}.json", mime="application/json",
+        file_name=f"radar_handoff_{sel_cid}.json",
+        mime="application/json",
     )
-    st.caption("Values are snapshot claims for the ReconOps Opportunity Packet's Origin "
-               "section — ReconOps re-verifies live; nothing here feeds its assessments.")
+    st.caption(
+        "Values are snapshot claims for the ReconRadar Opportunity Packet's Origin "
+        "section — ReconRadar re-pulls the contract facts live; nothing here feeds its assessments."
+    )
 else:
-    st.caption("ReconOps handoff unavailable for this candidate — missing PIID or an "
-               "unrecognized snapshot date.")
+    st.caption("ReconRadar handoff unavailable for this candidate — missing PIID or an unrecognized snapshot date.")
 
-st.info("Pursuit score, priority tier, capture phase, and recompete windows are **estimates** — "
-        "see the Data Quality & Methodology page.")
+st.info(
+    "Pursuit score, priority tier, capture phase, and recompete windows are **estimates** — "
+    "see the Data Quality & Methodology page."
+)

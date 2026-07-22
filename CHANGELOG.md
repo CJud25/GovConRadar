@@ -4,6 +4,163 @@ All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project versions the **scorer**
 (`SCORER_VERSION`) alongside the app.
 
+## [2.8.0] — 2026-07-16 — Forward surfacing: rank on the signals, eligibility beside the score, office concentration in the brief
+
+`pursuit_score`, `config/scoring_weights.yaml`, and `priority_tier` are **byte-identical** across
+this release — every feature below is a separate surface/lens beside the score, never a blend
+into it (honesty rule #9; the validator's scorer-parity firewall stays green).
+
+### Added
+- **Displacement sort lens (F2)** — the Explorer table and the Contract Detail "top 5 fits"
+  launcher can now be ordered by the baked F1 incumbent-displacement lane ("Displacement
+  signals, then score": observed signal count desc, pursuit score as tie-break; lane-unreadable
+  rows sort LAST, never imputed to zero). A bridge-flagged, sole-offer, expiring incumbent can
+  finally outrank a mock-profile capability match — as an ORDERING choice, not a score change.
+  Single-sourced in `components.data` (`displacement_sort` / `displacement_sort_ready` +
+  the two option labels, the bridge-watch pattern) so the two surfaces can never drift;
+  column-guarded so a pre-lane bundle never offers the lens. The Explorer grid also gains a
+  compact "Displacement" (k of n) indicator column beside the score.
+- **Eligibility beside the score (F3)** — the pursuit score's `set_aside_fit` component rewards
+  restricted work regardless of whether the firm can actually prime it; the real gate/warn/
+  unknown/clear verdict (`scoring.eligibility_lane`) now travels WITH the score everywhere it is
+  ranked: a fixed-vocabulary **"Prime path"** column on the Explorer grid immediately beside
+  Score (historical-path read, the `lane_counts` rule un-aggregated via the new adapter
+  `lane_states`; demo profile honestly reads Unknown/Clear only — no attestation exists), and a
+  Data-Gap-style ⛔ warning callout on Contract Detail whenever the lane hard-gates (live-notice
+  path), so a strong score can never be read without the "can't prime it" verdict. A gate, not a
+  score — the number never moves.
+- **Per-candidate market-context join (F4)** — `scoring.market_concentration` computed
+  `top_share` / `n_ueis` per DoD component but the read was stranded at market grain (one chart
+  on the Incumbent Landscape). New `annotate_agency_concentration` bakes the SAME read onto
+  `dim_agency` as four `concentration_*` columns (over the reportable, Data-Gap-excluded pool;
+  both honesty gates ride through; a component with no reportable rows bakes `insufficient` with
+  a named reason; unforgeable Unknown: observed ⇔ top_share present ⇔ reason empty, with
+  `concentration_n_ueis` always published as a coverage fact). Wired into the pipeline (step 8),
+  the rebake (`rebuild_dim_agency`), `EVIDENCE_CONTRACT["dim_agency"]`, and the capture brief's
+  Office section — which now shows the buying office's concentration ("top incumbent holds X% …
+  across N incumbents — a dollar-share, not market power") or the named refusal. Validator
+  invariant 12b pins vocabulary, equivalences, and baked == fresh-recompute parity; both data
+  dictionaries updated; sample bundles rebaked.
+
+### Fixed
+- **The baked bridge now regenerates through the current linker gates** — 2.7.1 fixed the
+  linker CODE but the shipped `bridge_award_opportunity_links` artifacts were never re-baked:
+  the full snapshot still carried 2,951 of 4,163 established links (71%) posted outside the
+  recency window, including High links pairing a 2018 notice with 2026 expiries — the exact
+  degenerate shape the gate was built to kill, still rendering in the app and the briefs.
+  `scripts/rebake_data.py::rebake_dir` now rebuilds the bridge from the bundle's own
+  candidates + `fact_opportunity_notices` through `transform.opportunity_linking
+  .build_bridge_table` (build_sample ships that regenerated bridge too), and NEW validator
+  **invariant 14** pins the artifact: no established link whose notice `posted_date` and
+  candidate end-anchor both parse may sit outside the recency window around every known
+  anchor. Established links after regeneration: data/powerbi 1,311 (was 4,163),
+  data/sample 10 (was 23); `docs/methodology_notes.md` coverage figures updated (~4% linked).
+- **Displacement lane: stale rows are quarantined out** (`scoring.incumbent_displacement`) —
+  a Data-Gap stale row (`candidate_status == "expired_stale"`) read its months-to-years-old
+  facts as observed "quiet" signals (`lapsed_no_successor` counted a 3-years-stale record as
+  an observed non-lapse) and could surface an observed "k of n" band, sort ahead in the
+  displacement lens, and earn the inferred chip beside its Data Gap tier. A stale row now
+  reads EVERY signal unknown, coverage-gating the whole lane to `insufficient` — Unknown
+  stays unforgeable, and the lane can never contradict the quarantine. All bundles rebaked;
+  `pursuit_score` / `priority_tier` remain byte-identical (validator invariant 1).
+- **Linker origin gate + either-anchor recency window** (`transform.opportunity_linking`) — two
+  adversarial-review catches on the 2.7.1 recency gate: (1) an award's own ORIGIN solicitation
+  (an exact-id match posted before `pop_start_date`) could still link High when a short period
+  of performance put it inside the expiry window — an establishing match posted before the
+  award's own start is now rejected (an origin notice is never a successor); (2) the gate
+  anchored ONLY on the policy-selected expiration, so a legitimate early recompete posted near
+  `current_end_date` after options went unexercised — exactly a displacement event — was wrongly
+  gated out. The window now accepts a notice inside the recency window of EITHER the selected
+  expiry OR the current period end. Missing/unparseable dates still never gate. Redacted
+  public-artifact titles (`CONTACT_TITLE_PLACEHOLDER`) now score as EMPTY in the fuzzy matcher,
+  so two redacted titles can never fabricate a 100-point "strong title" link.
+- **Brief Office-section concentration wording** — the observed line claimed the top incumbent's
+  share "of the component's reportable expiring obligated dollars", but
+  `market_concentration.top_share` divides by the ATTRIBUTED (UEI-known) slice of the reportable
+  pool (up to `max_unknown_uei_share` of dollars may carry no incumbent UEI). It now reads
+  "attributed (UEI-known) expiring obligated dollars"; the same correction lands in both data
+  dictionaries. No numeric change.
+
+## [2.7.1] — 2026-07-16 — Link-track integrity: recency gate, origin-notice rule, bulk-fill guard
+
+### Fixed
+- **Linker recency gate** (`transform.opportunity_linking`) — the 2026-07 audit found a single
+  2018 "IT SUPPORT SERVICES" notice matched as the "recompete" of 70 of 120 sampled 2025-ending
+  awards, purely on title similarity. An establishing match (id / strong title / corroborated
+  loose title) is now REJECTED when both dates are known and the notice's `posted_date` falls
+  outside `[expiration − 24 months, expiration + 12 months]` around the candidate's own end —
+  a recompete solicitation appears near/after the incumbent's expiry, never years before it.
+  Window bounds are asserted priors in **`config/opportunity_linking.yaml`** (validated in
+  `utils.config`); a missing/unparseable date on either side never gates (it cannot prove a
+  violation). Tiers/reasons otherwise unchanged; a candidate whose only matches were
+  recency-rejected gets an honest distinct No-Match reason. `posted_date` now rides
+  `OPPORTUNITY_CLEAN_COLUMNS` (bulk `posted_date` / live-API `postedDate` both mapped).
+
+### Added
+- **Labeling protocol §1: origin paperwork is never a successor** — an award's *own*
+  pre-solicitation, solicitation, award synopsis, or notice-of-intent-to-sole-source is not
+  successor activity and must be labeled `incorrect` (`docs/labeling_protocol.md`).
+- **Bulk-fill publication guard (G4)** — `trust_metrics.link_precision_rows` now REFUSES to
+  publish a link-precision tier whose filled verdicts are 100% a single `labeled_date` with
+  zero `labeler_notes` and zero `unsure` (the signature of a mechanical tier→label fill, not
+  per-case adjudication): new `gate_state="suspect_bulk_fill"`, value withheld, honest note.
+  Explicit `link_labels.allow_bulk_fill: false` prior in `config/measurement.yaml` — flipping
+  it (a real bool, never coerced) is the only override, for a deliberate documented
+  single-sitting session.
+
+## [2.7.0] — 2026-07-16 — Incumbent Displacement lane: the forward signals finally drive a surface
+
+### Added
+- **`src/scoring/incumbent_displacement.py`** — a categorical decision-table lane
+  ("Displacement signals: k of n observed") over six already-baked per-candidate signals:
+  bridge extension, termination on record, large deobligation, lapsed-with-no-visible-successor
+  (`expired_grace` + `successor_visible_basis == none_visible`), sole offer at the last
+  competition (competed extent only, mirroring the incumbent-lock chip's exact semantics), and
+  the incumbent's size-standard shift (joined from `dim_vendor` by UEI — gated Unknown when the
+  vendor read is not cleanly available). Every signal resolves fired / quiet / unknown; fewer
+  than `min_signals_read` readable inputs coverage-gates the whole lane to `insufficient`
+  (Unknown unforgeable: `observed <=> count present <=> signals present <=> real band`).
+  Six new baked columns (`displacement_*`) on `fact_recompete_candidates`; priors in
+  `config/incumbent_displacement.yaml` (offers junk-count guards threaded verbatim from
+  `config/reason_codes.yaml` — one home, no drift).
+- **`displacement` reason-codes signal** (19 signals, 38 templates): an inferred (ESTIMATE)
+  chip when >=1 signal fired, a digit-free missing chip when the lane is insufficient, no chip
+  when observed-quiet or on a pre-lane bundle (presence-gated).
+- **Contract Detail panel** "Incumbent displacement signals" (column-guarded, chips + unread
+  note); Incumbents view carries a deliberate TODO for the vendor-grain rollup.
+- **Validator invariant 10c** — displacement vocabulary, unforgeable-Unknown equivalences,
+  `count <= read <= 6`, and baked == fresh recompute over the bundle's own `dim_vendor`.
+- Lane columns wired into the rebake path, `EVIDENCE_CONTRACT`, both data dictionaries, and
+  the capture briefs (via the chip row).
+
+### Guaranteed unchanged
+- **`pursuit_score`, `config/scoring_weights.yaml`, and `priority_tier` are byte-identical** —
+  the lane is a separate surfaced label, never blended into any score; the scorer-parity
+  invariant (validator #1) and a lane-level firewall test pin it.
+
+## [2.6.0] — 2026-07-16 — Outcome-label vehicle grain: the honest recompete unit
+
+### Changed
+- **The outcome-label cohort is redrawn from order grain to vehicle grain**
+  (`outcome_labels.grain: vehicle`, the new default; `order` keeps the legacy per-order draw).
+  SINGLE-award task-order sequences roll up to ONE candidate per parent vehicle — under a
+  single-award IDV the next order to the same holder is a continuation, not a recompete — with
+  the recompete clock = the vehicle's ordering-period end; vehicles still open past the FY
+  window are gated out. MULTIPLE-award vehicle orders (GWAC / GSA schedule / BPA
+  fair-opportunity buys) stay at order grain: their follow-ons are genuine competed recompetes.
+  Standalone contracts are unchanged (clock = their own potential end). The disclosed top-50 is
+  now the top vehicles/contracts by their best cohort order's shipped `pursuit_score`.
+- **`data/labels/outcome_labels.csv` migrated to the vehicle-grain draw**; the order-grain
+  worksheet is archived under `data/labels/archive/`.
+
+### Added
+- **`data/reference/idv_attributes.csv`** — committed vehicle-attribute lookup (single-vs-
+  multiple award, ordering-period end, IDV type, competition, set-aside, total obligation) the
+  rollup joins against, refreshed offline by the new **`scripts/pull_idv_attributes.py`**
+  (USAspending award-detail API; the pipeline reads only the committed CSV, so a cold clone
+  stays reproducible with no network).
+- **`outcome_labels.grain`** in `config/measurement.yaml`: `vehicle` (default) | `order`.
+
 ## [2.5.0] — 2026-07-15 — Outcome-label rails: gated precision@50 + rank stability
 
 ### Added

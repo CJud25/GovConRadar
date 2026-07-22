@@ -1,9 +1,9 @@
 """
 radar_handoff.py — pure builder for the `radar-handoff/v1` JSON snapshot GovConRadar
-hands the analyst for the ReconOps Opportunity Packet's Origin intake (a separate,
-private repo). ReconOps' parser there (`src/tens_hq/radar_handoff.py`) is fail-closed —
+hands the analyst for the ReconRadar Opportunity Packet's Origin intake (a separate
+public repo: github.com/CJud25/ReconRadar). Its parser there (`src/tens_hq/radar_handoff.py`) is fail-closed —
 a file it rejects is a broken handoff — so every guard below mirrors that parser's
-rules exactly (restated contract, vendored below; ReconOps cannot be imported here).
+rules exactly (restated contract, vendored below; ReconRadar cannot be imported here).
 
 PURE module: no Streamlit, no clock/file/network access. `snapshot_date` is caller-
 supplied (the app's own as-of, never `date.today()` in here) so the builder stays
@@ -11,7 +11,7 @@ deterministic. The VIEW (views/detail.py) decides what to render; this module on
 decides what is safe to claim.
 
 The handoff carries FACT CLAIMS ONLY — no score, tier, pursuit_score, or
-recommendation (ReconOps is packet-not-score; a leaked score would be laundered
+recommendation (ReconRadar is packet-not-score; a leaked score would be laundered
 through its UI). `contract_title` is never emitted either (Radar titles can be
 garbled FPDS text — see flag_garbled_title).
 """
@@ -26,10 +26,10 @@ import pandas as pd
 
 SCHEMA_VERSION = "radar-handoff/v1"
 
-# The frozen `claims` key list, vendored from ReconOps `src/tens_hq/radar_handoff.py`
-# (a separate, private repo — restated here as LAW, not imported). Every key is always
+# The frozen `claims` key list, vendored from ReconRadar `src/tens_hq/radar_handoff.py`
+# (a separate public repo — restated here as LAW, not imported). Every key is always
 # emitted, explicit null standing in for "unknown" (absent key and explicit null are
-# equivalent to that parser, but emitting the full set mirrors ReconOps' own sample
+# equivalent to that parser, but emitting the full set mirrors ReconRadar's own sample
 # generator and keeps this producer's output self-documenting).
 CLAIMS_KEYS = (
     "referenced_idv_piid",
@@ -50,7 +50,7 @@ CLAIMS_KEYS = (
 )
 
 _MAX_STR_LEN = 500  # any string field over this length is REJECTED whole-file by the
-# ReconOps parser — never truncate (a truncated claim is an altered claim); emit null.
+# ReconRadar parser — never truncate (a truncated claim is an altered claim); emit null.
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
@@ -91,7 +91,7 @@ def _naics_str(v: Any) -> str | None:
 
 
 def _finite_number(v: Any) -> float | None:
-    """float-or-null: NaN/None/bool -> null (the ReconOps `_optional_number` guard
+    """float-or-null: NaN/None/bool -> null (the ReconRadar `_optional_number` guard
     excludes bool on both money fields — JSON true/false must never coerce), non-finite
     (inf/-inf) -> null. A negative value is kept (a true snapshot fact for obligations).
     pd.api.types.is_bool also catches numpy.bool_, which `isinstance(v, bool)` misses —
@@ -120,7 +120,7 @@ def _base_and_all_options(v: Any) -> float | None:
     NEVER `base_and_all_options_value` — at this export's transaction grain that column
     is <=0 on ~62% of rows (mods can make it negative; see src/scoring/mods_signal.py),
     while `potential_value` is <=0 on well under 1%. A zero/negative "ceiling" claim
-    would render as a visibly false dollar line in the ReconOps packet — the >0 guard
+    would render as a visibly false dollar line in the ReconRadar packet — the >0 guard
     mirrors src/scoring/burn_pressure.py treating base <= 0 as unusable."""
     f = _finite_number(v)
     return f if f is not None and f > 0 else None
@@ -128,7 +128,7 @@ def _base_and_all_options(v: Any) -> float | None:
 
 def _state_2char(v: Any) -> str | None:
     """place_of_performance.state: strip().upper() must be EXACTLY 2 characters or the
-    ReconOps parser rejects the whole file — all-whitespace collapses to absent (null).
+    ReconRadar parser rejects the whole file — all-whitespace collapses to absent (null).
     Alpha-only on top of the parser's len rule: every real value in this export is a
     2-letter USPS code (incl. AP/GU/MH/PR), so a non-alpha value (e.g. a future
     FIPS-coded "48") is a column-semantics change, not a state claim — null it."""
@@ -159,7 +159,7 @@ def _source_label(mode: str, legacy_synthetic: bool) -> tuple[str, bool] | None:
     the caller determines that by comparing the resolved dir against data.SAMPLE_DIR."""
     if mode == "custom":
         # "custom" only means "$RADAR_DATA_DIR override" — NOT "this is the bundled
-        # synthetic demo data" (that's what synthetic_sample means to ReconOps), so the
+        # synthetic demo data" (that's what synthetic_sample means to ReconRadar), so the
         # flag stays False here; the label alone carries the disclosure.
         return "GovConRadar — custom data directory (analyst-supplied)", False
     if mode == "live":
