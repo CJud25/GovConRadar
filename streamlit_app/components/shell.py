@@ -47,8 +47,8 @@ h1, h2, h3, .rr-hero, .rr-title, .kpi-value, .rr-wordmark {
 .rr-badge.live { background: rgba(46,139,118,0.22); color: #7FE3C7; }
 .rr-badge.sample { background: rgba(242,169,0,0.20); color: #F2C879; }
 .rr-title { font-size: 22px; font-weight: 700; margin: 4px 0 2px 0; color: #2A2D34; }
-.rr-sub { color: #8A8D91; font-size: 13.5px; margin-bottom: 6px; }
-.rr-disclaimer { color: #8A8D91; font-size: 12px; border-left: 3px solid #E7EBEF; padding: 4px 0 4px 10px; margin: 6px 0 2px 0; }
+.rr-sub { color: #64707A; font-size: 13.5px; margin-bottom: 6px; }
+.rr-disclaimer { color: #64707A; font-size: 12px; border-left: 3px solid #E7EBEF; padding: 4px 0 4px 10px; margin: 6px 0 2px 0; }
 
 /* ---- hero (home) ---- */
 .rr-hero { font-size: 27px; font-weight: 700; line-height: 1.22; color: #14212B; }
@@ -57,7 +57,7 @@ h1, h2, h3, .rr-hero, .rr-title, .kpi-value, .rr-wordmark {
 
 /* ---- KPI cards ---- */
 .kpi-card { background: #FFFFFF; border: 1px solid #E7EBEF; border-left-width: 4px; border-radius: 10px; padding: 13px 16px 14px 16px; height: 100%; }
-.kpi-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: #8A8D91; }
+.kpi-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: #64707A; }
 .kpi-value { font-weight: 700; font-size: 29px; line-height: 1.12; color: #14212B; margin-top: 5px; }
 .kpi-sub { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #64707A; margin-top: 5px; }
 .kpi-sub .up { color: #2E8B76; } .kpi-sub .down { color: #E4572E; }
@@ -136,15 +136,14 @@ def render_header(ctx: dict, title: str = None, subtitle: str = None, disclaimer
         """,
         unsafe_allow_html=True,
     )
-    # Freshness banner: a snapshot older than 45 days gets a soft amber notice so no
-    # one mistakes recomputed-to-today runway for newly-ingested awards.
-    if live:
-        if age is not None and age > 45:
-            st.warning(
-                f"Snapshot is {age} days old — runway figures are recomputed to today, "
-                "but awards issued since the snapshot are not yet included.",
-                icon="⏳",
-            )
+    # Freshness banner: a snapshot older than 45 days gets a soft amber notice in BOTH live and
+    # sample modes (an aging sample serves runway recomputed-to-today too).
+    if age is not None and age > 45:
+        st.warning(
+            f"Snapshot is {age} days old — runway figures are recomputed to today, "
+            "but awards issued since the snapshot are not yet included.",
+            icon="⏳",
+        )
     if title:
         st.markdown(f'<div class="rr-title">{title}</div>', unsafe_allow_html=True)
     if subtitle:

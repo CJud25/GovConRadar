@@ -26,6 +26,7 @@ from scoring.pursuit_score import (
     urgency_score,
     value_score,
 )
+from utils.config import SCORING_WEIGHTS
 
 SCORER_VERSION = pursuit_score.SCORER_VERSION
 _capability_match = capability_match_score
@@ -39,7 +40,7 @@ _data_quality = data_quality_score
 _tier = priority_tier
 
 # Weights MUST sum to 1.0 (mirrors config/scoring_weights.yaml).
-WEIGHTS = {
+_WEIGHTS_REFERENCE = {
     "capability_match": 0.25,
     "expiration_urgency": 0.20,
     "estimated_value": 0.15,
@@ -49,6 +50,11 @@ WEIGHTS = {
     "location_fit": 0.05,
     "data_quality": 0.05,
 }
+# Single source of truth: the live re-score MUST use the same vector the baked pipeline used.
+WEIGHTS = dict(SCORING_WEIGHTS)
+assert WEIGHTS == _WEIGHTS_REFERENCE, (
+    "rescore.WEIGHTS diverged from config/scoring_weights.yaml — re-sync the reference literal "
+    f"or the YAML: {WEIGHTS} vs {_WEIGHTS_REFERENCE}")
 
 # Which components move with the company profile (55%) vs. are intrinsic to the
 # contract (45%). Used for honest "what your profile drove" messaging.

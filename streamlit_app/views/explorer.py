@@ -242,6 +242,15 @@ if displacement_sort_ready(view):
                    "an ordering lens only; the score column itself is unchanged. Lane-unreadable "
                    "rows sort last.")
 
+# Empty-result guard: the global Search box or the terminated/bridge lens can empty `view`.
+# Show a graceful "no matches" state instead of rendering empty charts (which, without the
+# keyed plotly_chart fix above, collide on duplicate element ids and crash the tabs region).
+# The Search box and lens checkboxes rendered above stay visible so the user can clear them.
+if view.empty:
+    st.info("No candidates match your search or lens — clear the Search box above, or widen the "
+            "filters in the control panel on the left.")
+    st.stop()
+
 # ---- default best-fit shortlist: Tier 1–2 candidates inside an ~18-month runway.
 # The table/selection/export all run on table_df so the CSV + row-click index match
 # exactly what's on screen; the Charts + Calendar tabs stay on the full `view`.
@@ -329,9 +338,10 @@ with tab_table:
         # column plus render-only projections like `reasons`. Any column added to table_df upstream and
         # named in display_cols will auto-surface here; keep display_cols the allow-list of intent.
         display_cols = [c for c in [
-            "priority_tier", "tminus", "months_left", "burn", "mods", "signals", "pursuit_score", "prime_path",
-            "reasons", "title_display",
-            "subagency", "incumbent_vendor", "selected_expiration_date", "total_obligated_amount", "source_url",
+            "title_display", "subagency", "incumbent_vendor",
+            "priority_tier", "tminus", "pursuit_score", "prime_path", "reasons",
+            "burn", "mods", "signals", "months_left",
+            "selected_expiration_date", "total_obligated_amount", "source_url",
         ] if c in table_df.columns]
         event = st.dataframe(
             table_df[display_cols], hide_index=True, width="stretch",
@@ -385,19 +395,19 @@ with tab_table:
 
 with tab_charts:
     c1, c2 = st.columns(2)
-    c1.plotly_chart(charts.score_vs_value(view), width="stretch")
-    c2.plotly_chart(charts.capture_phase_bar(view), width="stretch")
+    c1.plotly_chart(charts.score_vs_value(view), width="stretch", key="exp_ch_score_value")
+    c2.plotly_chart(charts.capture_phase_bar(view), width="stretch", key="exp_ch_phase")
     st.markdown("**Pipeline value by dimension**")
     group_label = st.radio("Group by", ["DoD Component", "Incumbent", "NAICS", "PSC"], horizontal=True,
                            label_visibility="collapsed")
     group_col = {"DoD Component": "subagency", "Incumbent": "incumbent_vendor", "NAICS": "naics", "PSC": "psc"}[group_label]
     st.plotly_chart(charts.top_bar(view, group_col, f"Pipeline value by {group_label.lower()}"),
-                    width="stretch")
+                    width="stretch", key="exp_ch_top")
 
 with tab_cal:
     st.caption("Estimated recompete windows — when to start capture, not official solicitation dates.")
-    st.plotly_chart(charts.recompete_timeline(view), width="stretch")
-    st.plotly_chart(charts.expiration_histogram(view), width="stretch")
+    st.plotly_chart(charts.recompete_timeline(view), width="stretch", key="exp_cal_timeline")
+    st.plotly_chart(charts.expiration_histogram(view), width="stretch", key="exp_cal_hist")
     bridge = ctx["bridge"]
     if bridge.empty or ("link_confidence" in bridge and (bridge["link_confidence"] == "No Match").all()):
         st.info("🟡 **No SAM.gov opportunity signal in this dataset.** Recompete windows are estimated from award "

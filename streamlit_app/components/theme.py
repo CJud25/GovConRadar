@@ -125,8 +125,28 @@ def usd_short(value) -> str:
 
 
 def money_axis(fig, axis: str = "x"):
-    """Compact $ SI ticks on a value axis (e.g. $1.2G). Hovers use usd_short for
-    exact B/M/K wording; axes stay short."""
-    upd = {f"{axis}axis": dict(tickprefix="$", tickformat="~s")}
-    fig.update_layout(**upd)
+    """Value-axis ticks in govcon convention ($1B, not the SI $1G). d3 SI renders 1e9 as 'G';
+    we place our own tickvals and label them with usd_short. Falls back to SI when the axis
+    carries no numeric data (empty figure)."""
+    coord = "x" if axis == "x" else "y"
+    vals = []
+    for tr in fig.data:
+        arr = getattr(tr, coord, None)
+        if arr is None:
+            continue
+        for v in arr:
+            try:
+                fv = float(v)
+            except (TypeError, ValueError):
+                continue
+            if fv == fv:  # not NaN
+                vals.append(abs(fv))
+    key = f"{axis}axis"
+    if not vals or max(vals) <= 0:
+        fig.update_layout(**{key: dict(tickprefix="$", tickformat="~s")})
+        return fig
+    hi = max(vals)
+    ticks = [hi * i / 4 for i in range(5)]
+    fig.update_layout(**{key: dict(tickmode="array", tickvals=ticks,
+                                   ticktext=[usd_short(t) for t in ticks])})
     return fig

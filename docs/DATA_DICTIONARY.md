@@ -29,8 +29,11 @@ changes are **additive**: every legacy column stays populated for Power BI compa
 Legacy columns (`total_estimated_pipeline_value`, `recompete_candidate_count`, `tier_1_count`,
 `expiring_within_12_months_count`, `top_agency_by_pipeline_value`, `top_incumbent_by_expiring_value`,
 `average_pursuit_score`, `average_data_quality_score`) remain — **but** `average_data_quality_score` is
-now computed under the fixed logic (no longer a fake 100.0), and `tier_1_count` excludes stale records
-(they are Data Gap). Added:
+now computed under the fixed logic (no longer a fake 100.0), `tier_1_count` excludes stale records
+(they are Data Gap), and `total_estimated_pipeline_value` is **forward-only** (rows with
+`0 ≤ days_until_expiration`; expired and undated value excluded — it no longer blends expired into
+active). One definition across both writers (`export/powerbi_export.py` and `scripts/rebake_data.py`).
+Added:
 
 | Column | Meaning |
 |---|---|
@@ -62,3 +65,95 @@ and stale-age bands (`expired_grace_count_0_90d`, `expired_stale_count_90d_1y`, 
 subagency/incumbent, NAICS/PSC, competition & set-aside codes, `source_url`, `data_quality_notes`, all
 `ptw_*`. **Derived** (regenerated): everything in the tables above plus surrogate `*_key` columns,
 `capture_phase`, and all rollups/KPIs.
+
+---
+
+# Data dictionary — mods/termination release additions
+
+Additive columns from the "keep the mods" batch (termination/ghost-fix + mod signals +
+successor-visible + size-shift + populated `fact_transactions`). Every signal is coverage-gated:
+an unreadable input yields an explicit `insufficient`/Unknown, never an imputed value. Every
+mods-derived surface carries the fixed disclosure: **"DoD FPDS reporting lags ~90 days;
+termination signals are ≥3 months old."**
+
+## `fact_recompete_candidates` — mod-signal columns (15)
+
+| Column | Type | Fact/Estimate | Meaning |
+|---|---|---|---|
+| `terminated` | bool | fact | Any transaction carried a termination code (`action_type_code` ∈ E/F/X/N; K = Close Out is NEVER a termination). |
+| `termination_code` | str | fact | Earliest termination code (E default / F convenience / X cause / N legal cancellation). |
+| `termination_action_date` | date | fact | Earliest termination transaction's action date. |
+| `termination_kind` | str | **estimate (inferred)** | `complete_likely` only when the reported current end collapsed to ≤31 days past the termination date; else `partial_or_unclear`; `none`. Missing dates can never yield `complete_likely`. |
+| `termination_basis` | str | metadata | `observed_code` / `none`. |
+| `mod_count` | int | fact | Distinct transactions observed in the loaded FY window (cross-file deduped). |
+| `mod_velocity` | float | estimate | `mod_count` per active PoP-year; null when unreadable. |
+| `mod_velocity_band` | str | estimate | `low` / `normal` / `high` / `not_applicable` (priors fitted to the measured distribution — see `config/mods_signal.yaml`). |
+| `ceiling_growth_ratio` | float | fact-derived | Last/first **cumulative** ceiling (`potential_total_value_of_award`) over positive readings. (Measured: `base_and_all_options_value` is a per-transaction delta on these exports — deliberately not used.) |
+| `ceiling_balloon_flag` | bool | estimate | Ratio > 1.5 (fitted: flags ~6.6% of the ratio-readable pool). |
+| `ceiling_basis` | str | metadata | `measured` / `insufficient`. |
+| `has_deobligation` | bool | estimate (weak) | Non-closeout obligation below −$100k before the planned end. Never labeled a cancellation. |
+| `bridge_flag` | bool | estimate | Non-competed (extent B/C/G **codes**) transaction pushed the current end >30 days past the ORIGINAL planned end. |
+| `bridge_basis` | str | metadata | `observed` / `insufficient`. |
+| `mods_basis` | str | metadata | `measured` / `single_transaction` / `insufficient`. |
+
+**The ghost-fix:** a `complete_likely` termination retargets `selected_expiration_date` to the
+termination date with `expiration_date_basis = "terminated"` (a fourth basis value), so an ended
+contract leaves the forward default view through the existing expired-row machinery — kept and
+flagged, never dropped.
+
+## `fact_recompete_candidates` — successor-visible (bridge-watch)
+
+| Column | Type | Fact/Estimate | Meaning |
+|---|---|---|---|
+| `successor_visible` | bool/null | **estimate (inferred)** | A later same-cell (NAICS × 2-char-PSC × DoD-component) award shows FPDS activity after this end date; same-parent-IDV task orders and the award itself are excluded. Null = Unknown (cell too thin). |
+| `successor_visible_basis` | str | metadata | `observed` / `none_visible` ("no successor visible in public data yet — DoD reporting lags ~90 days"; NEVER "missed recompete") / `insufficient_cell`. |
+
+## `fact_recompete_candidates` — incumbent-displacement lane
+
+A categorical decision-table LABEL ("k of n readable signals fired") over six already-baked
+signals — bridge / termination / deobligation / lapsed_no_successor / sole_offer / size_shift.
+It is **never blended into `pursuit_score` or `priority_tier`** (the scorer-parity firewall
+stays byte-identical); priors live in `config/incumbent_displacement.yaml`.
+
+| Column | Type | Fact/Estimate | Meaning |
+|---|---|---|---|
+| `displacement_signal_count` | int/null | **estimate** | How many readable signals fired. Null = Unknown (insufficient coverage). |
+| `displacement_signals_read` | int | coverage fact | How many of the 6 inputs were readable on this record. |
+| `displacement_signals` | str/null | estimate | `+`-joined fired slugs (`none` when none fired — never blank, so a CSV round-trip can't forge a NaN). Null = Unknown. |
+| `displacement_unread` | str | coverage fact | `+`-joined slugs of the inputs that could NOT be read (`none` when all 6 read). |
+| `displacement_band` | str | estimate | `multiple_signals` / `single_signal` / `none_observed` / `not_applicable` (insufficient). |
+| `displacement_basis` | str | metadata | `observed` / `insufficient` (fewer than `min_signals_read` readable inputs). |
+
+## `dim_vendor` — size-determination shift
+
+| Column | Type | Fact/Estimate | Meaning |
+|---|---|---|---|
+| `size_standard_shift` | bool/null | **estimate (directional)** | Same-NAICS awards' CO size-determination CODE moved S → O over time (per-procurement; never a vendor-size verdict). Null = insufficient determinations. |
+| `size_standard_basis` | str | metadata | Named basis with real counts/codes, or the insufficient label. |
+
+## `dim_agency` — incumbent-concentration join (F4)
+
+The market-grain concentration read (`scoring.market_concentration`, the Incumbent Landscape
+view's live computation) baked per DoD component so the capture brief's Office section can show
+the buying office's competitive concentration. Computed over the REPORTABLE pool (Data Gap
+excluded); both honesty gates (vendor floor, UEI coverage) ride through unchanged, and a
+component with no reportable rows bakes `insufficient`. **Never blended into `pursuit_score` or
+any tier.** Unforgeable Unknown: `basis == observed ⇔ top_share present ⇔ reason empty`
+(an observed row's empty reason round-trips CSV as NaN — blank-or-NaN reads as "no refusal";
+validator invariant 12b pins the equivalences and the baked == fresh-recompute parity).
+
+| Column | Type | Fact/Estimate | Meaning |
+|---|---|---|---|
+| `concentration_top_share` | float/null | **fact (ratio of published sums)** | Top incumbent's share of the component's attributed (UEI-known) expiring obligated dollars within the reportable set — the denominator excludes dollars with no incumbent UEI (bounded by the coverage gate), in (0,1]. Null = Unknown. NOT market share/power/contestability. |
+| `concentration_n_ueis` | int | coverage fact | Distinct positive-net incumbent UEIs in the component's reportable set — always published. |
+| `concentration_basis` | str | metadata | `observed` / `insufficient` (thin market, low UEI coverage, no positive dollars, or no reportable rows). |
+| `concentration_reason` | str | metadata | Named refusal reason when `insufficient`; empty when observed. |
+
+## `fact_transactions` — populated (signal-bearing evidence only)
+
+`transaction_id` (unique), `award_id`, `modification_number`, `action_date`, `action_type_code`,
+`action_obligation` (the transaction's obligation **delta**), `description`. Only signal-bearing
+transactions are emitted (terminations E/F/X/N, closeouts K, large deobligations, the bridge
+witness, balloon ceiling endpoints). `description` is **local-only**: PII-scrubbed on the local
+export and excluded from every public artifact (committed sample + GitHub Release), enforced by
+validator invariant 9.

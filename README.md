@@ -1,13 +1,15 @@
 # GovCon Recompete Radar
 
 [![CI](https://github.com/CJud25/GovConRadar/actions/workflows/ci.yml/badge.svg)](https://github.com/CJud25/GovConRadar/actions/workflows/ci.yml)
-&nbsp;·&nbsp; **118 data-integrity checks · all views boot** &nbsp;·&nbsp; **Scorer v2.0.0** &nbsp;·&nbsp; Python 3.10+ &nbsp;·&nbsp; [Live demo → govconradar.streamlit.app](https://govconradar.streamlit.app)
+&nbsp;·&nbsp; **118 data-integrity checks · all views boot** &nbsp;·&nbsp; **Scorer v2.0.0** &nbsp;·&nbsp; Python 3.12+ &nbsp;·&nbsp; [Live demo → govconradar.streamlit.app](https://govconradar.streamlit.app)
 
 **Find the DoD cyber/IT contracts coming up for recompete — and know which numbers you can defend.**
 
 An ETL + BI pipeline over public **USAspending.gov** and **SAM.gov** data that finds expiring DoD
 cybersecurity/IT contracts, estimates their recompete windows, scores each for pursuit fit against
-*your* company profile, and ships the result as a Power BI star schema **and** a Streamlit companion app.
+*your* company profile, and ships the result as a **Power-BI-ready CSV star schema** and a Streamlit
+app. (The Power BI report itself is authored in the private build repo; this public repo ships the
+schema the report consumes, not the `.pbip`.)
 
 > **The product's brand is honesty.** Every number on screen is built to survive scrutiny from someone
 > who does capture management for a living. Facts are labeled facts; estimates are labeled estimates;
@@ -117,8 +119,8 @@ py scripts/validate_data.py            # data/powerbi/  (SKIPs if absent)
 synthetic bundle). The full snapshot is **not committed** as part of the data diet — fetch it with
 `py scripts/download_data.py`; a fresh clone runs on `data/sample/`.
 
-The full ETL pipeline (`run_pipeline.py`, private — not shipped in this public repo) needs local bulk CSV exports; the app and validators run
-without it against the shipped star schema.
+The full ETL pipeline (`run_pipeline.py`, private — not shipped in this public repo) needs local bulk
+CSV exports; the app and validators run without it against the shipped star schema.
 
 ## Query the data model in SQL
 
@@ -183,13 +185,12 @@ $ RADAR_DATA_DIR=data/sample py run_sql.py sql/01_recompete_expiring_next_12mo_b
 │ naics_code │                                   naics_description                                    │ candidates_next_12mo │ pipeline_obligated_musd │
 │  varchar   │                                        varchar                                         │        int64         │         double          │
 ├────────────┼────────────────────────────────────────────────────────────────────────────────────────┼──────────────────────┼─────────────────────────┤
-│ 541519     │ Other Computer Related Services                                                        │                  178 │                  996.53 │
-│ 541512     │ Computer Systems Design Services                                                       │                  125 │                 1189.72 │
-│ 541511     │ Custom Computer Programming Services                                                   │                   55 │                  434.49 │
-│ 518210     │ Computing Infrastructure Providers, Data Processing, Web Hosting, and Related Services │                   22 │                  546.03 │
-│ 541513     │ Computer Facilities Management Services                                                │                   19 │                  174.19 │
-│ 541330     │ Engineering Services                                                                   │                   16 │                  334.02 │
-│ 541611     │ Administrative Management and General Management Consulting Services                   │                    4 │                   31.09 │
+│ 541519     │ Other Computer Related Services                                                        │                   26 │                  258.72 │
+│ 541512     │ Computer Systems Design Services                                                       │                   17 │                  109.81 │
+│ 541511     │ Custom Computer Programming Services                                                   │                    5 │                   20.44 │
+│ 541611     │ Administrative Management and General Management Consulting Services                   │                    2 │                    6.71 │
+│ 541513     │ Computer Facilities Management Services                                                │                    1 │                    54.5 │
+│ 518210     │ Computing Infrastructure Providers, Data Processing, Web Hosting, and Related Services │                    1 │                    1.84 │
 └────────────┴────────────────────────────────────────────────────────────────────────────────────────┴──────────────────────┴─────────────────────────┘
 ```
 
@@ -200,11 +201,6 @@ obligation), while the 12-month expiry window is an **estimate** recomputed to t
 ## What's new — honesty-first reads (2026-07)
 
 Each addition **refuses to guess** where the public data won't support a claim — the whole brand, made visible.
-
-**ReconRadar handoff** (2026-07-22) — Contract Detail exports a cited, score-free
-`radar-handoff/v1` JSON snapshot (facts only — no score, tier, or `pursuit_score` can
-leak into it) for intake by [ReconRadar](https://github.com/CJud25/ReconRadar), the
-downstream Opportunity-Packet app, which re-pulls the contract facts live on arrival.
 
 **2.4.0 → 2.8.0 — forward signals beside the score, never inside it** (2026-07-15/16):
 `pursuit_score`, the weights, and every tier are **byte-identical** across all five releases
@@ -266,7 +262,7 @@ each has a deep-link URL, target filename, and viewport, so dropping the PNGs in
 
 ## Docs
 
-- [Architecture](docs/ARCHITECTURE.md) — data flow from USAspending/SAM.gov → star schema → {Power BI, Streamlit}
+- [Architecture](docs/ARCHITECTURE.md) — data flow from USAspending/SAM.gov → star schema → Streamlit app (+ a Power BI report in the private build repo)
 - [Standard Operating Procedure (v2.1)](docs/SOP_Recompete_Radar_v2.1.md) — controlled refresh/validate/deploy runbook (supersedes the earlier informal SOP)
 - [Data dictionary](docs/DATA_DICTIONARY.md) — every table/column, with the v2 additions and legacy notes
 - [Data provenance](docs/DATA_PROVENANCE.md) — where the numbers come from; sample-data synthesis

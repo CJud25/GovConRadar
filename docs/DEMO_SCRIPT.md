@@ -15,8 +15,8 @@ when running locally on the full snapshot (`py scripts/download_data.py`).
 
 ## Beat 1 — Score it for *your* company (90s)
 
-1. Read the headline. On the shipped sample: **~810 active candidates (~$5.7B) across ~405 vehicles**,
-   with **~4,070 stale records quarantined** (counts drift by a few rows day-to-day because runway
+1. Read the headline. On the shipped sample: **~820 active candidates (~$6.5B) across ~401 vehicles**,
+   with **~4,044 stale records quarantined** (counts drift by a few rows day-to-day because runway
    windows recompute to today; the full 2026-07-15 snapshot: 5,712 active ≈ $49.4B,
    29,393 quarantined). Note the collapsed **"Needs verification"** strip — "these aren't in any of
    my numbers; they're here to audit, with a Verify-on-SAM.gov link each."
@@ -53,7 +53,7 @@ when running locally on the full snapshot (`py scripts/download_data.py`).
 
 ## Optional closer (30s)
 
-Show the **vehicle rollup** in Explorer — up to 177 near-identical task orders collapse to one vehicle
-row ("you pursue the vehicle, not 177 rows") — and the **curated export** ("clean CSV, no surrogate keys,
+Show the **vehicle rollup** in Explorer — up to 164 near-identical task orders collapse to one vehicle
+row ("you pursue the vehicle, not 164 rows") — and the **curated export** ("clean CSV, no surrogate keys,
 raw record never leaves the building"). Mention CI + `scripts/validate_data.py`: "the honesty is enforced
 by tests, not just claimed."

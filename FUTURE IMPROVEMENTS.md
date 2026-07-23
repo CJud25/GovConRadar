@@ -34,7 +34,7 @@ Three design decisions distinguish this application from typical BD dashboards, 
 
 **It corrected itself in public.** Scorer v1 gave every expired contract maximum urgency — inflating the headline to 4,695 candidates and $64.6B and producing a meaningless perfect data-quality average. Version 2.0.0 fixed the logic, cut Tier 1 from 118 candidates to 26, and documented the whole correction in the changelog. The product's brand is honesty, and the changelog is the receipt.
 
-The application shares a Power BI-style star schema with a companion Power BI report, ships a synthetic sample dataset so it runs anywhere with no pipeline or API access, and recomputes every contract's runway against *today* on load so an aging deployment never presents a lapsed contract as active.
+The application shares a Power BI-style star schema with a companion Power BI report (private build repo), ships a synthetic sample dataset so it runs anywhere with no pipeline or API access, and recomputes every contract's runway against *today* on load so an aging deployment never presents a lapsed contract as active.
 
 ---
 

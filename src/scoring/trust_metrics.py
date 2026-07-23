@@ -421,7 +421,7 @@ def abstention_rows(candidates: pd.DataFrame) -> pd.DataFrame:
 
 
 _LEAD_TIME_BIAS_NOTE = (
-    "selection bias disclosed: only the ~12% linked subset of candidates can carry a "
+    "selection bias disclosed: only the ~4% linked subset of candidates can carry a "
     "lead time, it skews late-stage (a notice already exists), and DoD FPDS reporting "
     "lags ~90 days"
 )

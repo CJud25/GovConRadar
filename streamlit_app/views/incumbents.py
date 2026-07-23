@@ -30,7 +30,7 @@ shell.needs_verification_strip(full)
 tab_inc, tab_map = st.tabs(["  Incumbents  ", "  Market map  "])
 
 with tab_inc:
-    st.plotly_chart(charts.incumbent_pareto(df), width="stretch")
+    st.plotly_chart(charts.incumbent_pareto(df), width="stretch", key="inc_pareto")
 
     # Footprint: contract count (x) vs near-term expiring value (y), sized by total pipeline.
     exp = df[df["days_until_expiration"].notna() & df["days_until_expiration"].between(0, 365)]
@@ -49,7 +49,7 @@ with tab_inc:
                           hovertemplate="<b>%{customdata[0]}</b><br>%{x} contracts · %{customdata[1]} ≤12mo<extra></extra>")
         theme.money_axis(fig, "y")
         st.plotly_chart(theme.style(fig, title="Incumbent footprint (count vs. near-term expiring value)"),
-                        width="stretch")
+                        width="stretch", key="inc_footprint")
 
     st.markdown("**Vendor detail**")
     vendor = st.selectbox("Select incumbent", sorted(df["incumbent_vendor"].dropna().unique()))
@@ -96,10 +96,11 @@ with tab_inc:
                       key="exp_vendor")
 
 with tab_map:
-    st.plotly_chart(charts.state_choropleth(df), width="stretch")
+    st.plotly_chart(charts.state_choropleth(df), width="stretch", key="inc_map_choro")
     left, right = st.columns(2)
-    left.plotly_chart(charts.top_bar(df, "subagency", "Pipeline value by DoD component"), width="stretch")
-    right.plotly_chart(charts.agency_psc_heatmap(df), width="stretch")
+    left.plotly_chart(charts.top_bar(df, "subagency", "Pipeline value by DoD component"),
+                      width="stretch", key="inc_map_component")
+    right.plotly_chart(charts.agency_psc_heatmap(df), width="stretch", key="inc_map_heatmap")
 
     # Obligation trend by federal fiscal year, from the awards fact.
     awards = ctx["awards"]
@@ -116,7 +117,8 @@ with tab_map:
             fig.update_traces(marker_color=theme.TEAL,
                               hovertemplate="FY%{x}<br>%{customdata[0]}<extra></extra>")
             theme.money_axis(fig, "y")
-            st.plotly_chart(theme.style(fig, title="Obligations by federal fiscal year"), width="stretch")
+            st.plotly_chart(theme.style(fig, title="Obligations by federal fiscal year"),
+                            width="stretch", key="inc_fy_trend")
 
     # ── Incumbent concentration (descriptive) — top-incumbent obligated-dollar share by DoD
     #    component over the reportable set. NO Herfindahl number, NO DOJ/FTC bands (Corrections
@@ -126,7 +128,7 @@ with tab_map:
     assessable = [m for m in markets if m.assessable]
     unknown = [m for m in markets if not m.assessable]
     if assessable:
-        st.plotly_chart(charts.hhi_concentration_bar(assessable), width="stretch")
+        st.plotly_chart(charts.hhi_concentration_bar(assessable), width="stretch", key="inc_hhi")
     if unknown:
         st.caption("Refuses to guess — shown as *Unknown*: "
                    + "; ".join(f"{m.market} ({m.reason})" for m in unknown))

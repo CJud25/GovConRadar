@@ -8,7 +8,7 @@ weights:
   expiration_urgency: 0.20    # how soon the selected expiration date arrives
   estimated_value: 0.15       # fit against the vendor's comfortable value range
   agency_fit: 0.10            # agency matches vendor's synthetic past performance
-  set_aside_fit: 0.10         # extent_competed proxy (real set_aside is a v1 gap)
+  set_aside_fit: 0.10         # type_of_set_aside_code (primary); extent_competed fallback
   recompete_confidence: 0.10  # expiration-basis + classification confidence blend
   location_fit: 0.05          # place of performance in vendor's states served
   data_quality: 0.05          # penalizes flagged data-quality issues

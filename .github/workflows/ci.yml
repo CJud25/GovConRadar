@@ -56,7 +56,11 @@ jobs:
       - name: SQL query pack (DuckDB, over the shipped sample)
         run: |
           python run_sql.py sql/01_recompete_expiring_next_12mo_by_naics.sql
+          python run_sql.py sql/02_incumbent_concentration_by_dod_component.sql
+          python run_sql.py sql/03_pursuit_score_distribution_by_tier.sql
           python run_sql.py sql/04_competitive_price_range_by_psc.sql
+          python run_sql.py sql/05_yoy_obligation_trend.sql
+          python run_sql.py sql/06_pipeline_mix_by_fiscal_quarter.sql
       - name: ETL mini-pipeline (offline, synthetic)
         run: python pipeline_demo/run_all.py --offline
       - name: Dependency audit (advisory — an upstream CVE must not redden the data-integrity badge)

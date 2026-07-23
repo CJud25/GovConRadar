@@ -153,6 +153,9 @@ def _render_competitive_price_range(row, ctx, sel_cid):
     m2.metric(f"Market Median ({unit})", theme.usd_short(res["median"]), delta=show_delta, delta_color="off")
     m3.metric(f"High ({unit})", theme.usd_short(res["high"]))
 
+    def _usd_md(v):
+        return theme.usd_short(v).replace("$", "\\$")   # escape $ so markdown never enters KaTeX math
+
     strengths = {"Strong": "🟢", "Moderate": "🟡", "Weak": "🟠", "Insufficient": "⚪"}
     ds = res["data_strength"]
     spread = (res["annual_high"] - res["annual_low"]) / res["annual_median"] if res["annual_median"] else 0
@@ -167,7 +170,7 @@ def _render_competitive_price_range(row, ctx, sel_cid):
         + (f" ({meaning})" if meaning else "")
         + f" — based on **{res['n']} comparables**, IQR spread ±{spread * 50:.0f}%. "
         + (
-            f"Median 80% interval {theme.usd_short(res['ci_low'])}–{theme.usd_short(res['ci_high'])}/yr."
+            f"Median 80% interval {_usd_md(res['ci_low'])}–{_usd_md(res['ci_high'])}/yr."
             if res["n"]
             else ""
         )
@@ -182,7 +185,7 @@ def _render_competitive_price_range(row, ctx, sel_cid):
             note = f" — **{_pct(abs(div))} {where}** the market median"
         if res.get("incumbent_outside_iqr"):
             note += " · outside the comparable P25–P75 (possible scope mismatch or a price-attack opening)"
-        st.markdown(f"📍 **Incumbent run-rate: {theme.usd_short(incumbent_rr)}/yr**{note}.")
+        st.markdown(f"📍 **Incumbent run-rate: {_usd_md(incumbent_rr)}/yr**{note}.")
 
     st.plotly_chart(
         charts.ptw_strip(
@@ -193,6 +196,7 @@ def _render_competitive_price_range(row, ctx, sel_cid):
             incumbent_rr,
         ),
         width="stretch",
+        key="detail_ptw_strip",
     )
     st.caption(
         "Each dot is a comparable award's **actual** historical run-rate (a fact). The shaded band and median "
@@ -281,7 +285,7 @@ def _render_obligation_pace(row, as_of):
     m1, m2 = st.columns(2)
     m1.metric("Ceiling obligated", f"{float(cr):.0%}")
     m2.metric("Clock elapsed", f"{time_ratio:.0%}")
-    st.plotly_chart(charts.burn_pressure_bar(float(cr), time_ratio, band), width="stretch")
+    st.plotly_chart(charts.burn_pressure_bar(float(cr), time_ratio, band), width="stretch", key="detail_burn")
     st.caption(
         "Both figures are facts from USAspending; the pace band is the estimate (±0.20 asserted-prior "
         "thresholds). Obligation pace reflects the **funding profile** (fully-funded awards obligate early; "
@@ -629,7 +633,7 @@ with left:
 
 with right:
     if not brk.empty:
-        st.plotly_chart(charts.scoring_breakdown_bar(brk), width="stretch")
+        st.plotly_chart(charts.scoring_breakdown_bar(brk), width="stretch", key="detail_breakdown")
         st.caption(
             "Blue components move when you edit your company profile; gray ones are facts of the contract itself."
         )

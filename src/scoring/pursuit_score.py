@@ -3,7 +3,9 @@ scoring.py — 8-component weighted Pursuit Score (0-100) against the synthetic
 mock vendor profile, plus priority tiering. Every score here is an ESTIMATE.
 
 SCORER_VERSION 2.0.0 — Honesty overhaul. Must stay in lockstep with the app port
-streamlit_app/components/rescore.py (tests/test_rescore.py asserts parity):
+streamlit_app/components/rescore.py; parity is enforced in the public deploy by
+`scripts/validate_data.py` (byte-exact recompute), and additionally covered by
+`tests/test_rescore.py` in the source repo:
   * urgency_score: replaced the v1 expired-cliff (days<=0 -> 100) with a graduated
     curve (active linear decay; -90..-1 grace; stale/NaN -> 0).
   * data_quality_score: empty notes now neutral 70 (not 100); -20 per note, -15 per

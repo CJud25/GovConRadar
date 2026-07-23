@@ -1,5 +1,11 @@
 # Changelog
 
+> Note: this changelog records the private build repo. The public deploy ships the app, its
+> `src/`+`config/` library, a committed `data/sample/`, and the script-based gate
+> (`validate_data.py`, `check_doc_counts.py`, `smoke_app.py`). The pytest suites and
+> `pyproject.toml`/ruff config referenced in older entries live in the build repo, not this
+> public deploy.
+
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project versions the **scorer**
 (`SCORER_VERSION`) alongside the app.
@@ -198,8 +204,7 @@ into it (honesty rule #9; the validator's scorer-parity firewall stays green).
   bases render refusals (never numbers), and every value is escaped. System font stack,
   self-contained CSS, print-ready.
 - **Freshness surfaces** — the header band now reads `as of {date} · {N}d old` in both live
-  and sample modes; delivered digests carry a `Data as of {date}.` line above the footer, and
-  CRM lead exports gain a `snapshot_date` column (the data's date, never a file mtime).
+  and sample modes.
 
 ### Removed
 - The 2026-07-03 in-app capture brief (three inlined template functions, including a
@@ -212,22 +217,20 @@ into it (honesty rule #9; the validator's scorer-parity firewall stays green).
 ## [2.3.1] — 2026-07-15 — Clean-history republish, provenance manifest, PSC catalog
 
 ### Security
-- **Repository history recreated as one clean commit.** Pre-redaction data (contracting-officer
-  personnel titles) was still reachable by raw SHA on dangling commits even after the releases and
-  tags that referenced them were deleted — repository delete+recreate is GitHub's only true purge.
-  The full development history lives in the private source repo; this public repo now carries a
-  single deploy commit per release.
+- **Public repository history recreated as one clean commit.** Pre-redaction data
+  (contracting-officer personnel titles) was still reachable by raw SHA on dangling commits
+  even after the releases and tags referencing them were deleted — repository delete+recreate
+  is GitHub's only true purge. The full development history lives in this private repo.
 
 ### Added
-- **Release provenance manifest** — the data-snapshot zip now carries `manifest.json` (SHA-256 +
-  row count per table, plus a source-freshness block); `scripts/download_data.py` verifies every
+- **Release provenance manifest** — the data-snapshot zip carries `manifest.json` (SHA-256 +
+  row count per table + source-freshness block); `scripts/download_data.py` verifies every
   table against it on extraction and refuses an asset without one.
-- **PSC descriptions backfilled from the GSA PSC manual** (two committed vintages: current and the
-  pre-restructure legacy edition): `dim_psc` unknown descriptions went 1,306 → 0, with
-  classification and tiers byte-identical (tripwire-verified).
-- CI: an **import-walk** over every shipped `src/**/*.py`, advisory **pip-audit**, blocking
-  **gitleaks**, and `scripts/check_doc_counts.py` — pinned prose numbers asserted against
-  generated values on every push.
+- **PSC descriptions backfilled from the GSA PSC manual** (two committed vintages under
+  `data/reference/psc_manual/`): `dim_psc` unknown descriptions 1,306 → 0; classification and
+  tiers byte-identical (tripwire-verified).
+- Public CI: import-walk over every shipped `src/**/*.py`, advisory pip-audit, blocking
+  gitleaks, and `scripts/check_doc_counts.py` (pinned prose numbers vs generated values).
 
 ### Changed
 - **Expiring aggregates and the pipeline-value KPI are forward-only** (first live in the
@@ -246,10 +249,8 @@ into it (honesty rule #9; the validator's scorer-parity firewall stays green).
 - **Notice set-asides populate.** The SAM bulk export's real headers are `SetASideCode`/`SetASide`;
   a phantom `SetAside` mapping left `fact_opportunity_notices.set_aside` empty on every notice.
   Both fields now land (`set_aside` on 831 of 1,816 notices; new `set_aside_code` column).
-- `requirements.txt` gains `rapidfuzz` + `requests` (imported by the shipped library; previously
-  installed only transitively).
-- Stale pinned counts corrected across README and docs; `docs/case-study.md` deleted (two
-  release-cycles stale in every pinned number and duplicative of the README).
+- Deploy `requirements.txt` gains `rapidfuzz` + `requests`; stale pinned counts corrected across
+  README and docs; `docs/case-study.md` deleted (stale in every pinned number, duplicative).
 
 ## [2.3.0] — 2026-07-13 — "Keep the mods": termination ghost-fix + modification-history signals
 
@@ -280,6 +281,9 @@ into it (honesty rule #9; the validator's scorer-parity firewall stays green).
 - **Incumbent size-determination shift** — `dim_vendor.size_standard_shift(/_basis)`: per-NAICS
   S→O CODE transitions (never the text field), directional with a named basis; 353 of 2,394
   readable vendors flagged on the current snapshot.
+- **Delivery half** — `radar_alerts.deliver` (stdlib email/webhook transports, loud failures),
+  `scripts/send_digest.py` (filtered re-render; dry-run), `scripts/export_crm_leads.py`
+  (`crm_note` one-liners from the shipped reason codes; formula-injection-defused).
 - **Notice-clock** (live response-window countdown for the linked-notice subset) and a
   **Sources Sought / RFI early-warning lane** (staged on the SAM bulk refresh; never fabricates).
 - App surfaces: Terminated (verify) / Bridge / Ceiling +N% chips with the fixed disclosure
@@ -287,58 +291,12 @@ into it (honesty rule #9; the validator's scorer-parity firewall stays green).
   badge; "How we compare" methodology copy; `docs/ROADMAP.md` with the no-ML-probabilities gate.
 - Validator: generic public-artifact policy (invariant 9 iterates every entry) + a presence-gated
   mods honesty block (triple-equivalences, ghost-fix contract both directions, evidence-id
-  uniqueness).
+  uniqueness). 712 → 797 tests; 145 validator PASS checks across both targets.
 
 ### Data
 - Snapshot 2026-07-13 (FY2019–FY2026 intake unchanged). **Upgraders: delete `data/powerbi/`
   before running `scripts/download_data.py`** — stale CSV siblings from a prior snapshot would
   otherwise sit beside the fresh parquet extraction.
-
-## [2.2.0] — 2026-07-11 — Three honesty-first reads + hardened PII redaction
-
-### Added
-- **Obligation pace** — descriptive obligation-vs-clock read per order (Detail bar, Explorer chip);
-  refuses on ~98% of orders rather than guess. Baked-only; the app never recomputes it.
-- **Reason codes** — the pursuit score explained as ● fact / ◐ estimate / ○ not-reported chips,
-  recomputed live; never a fabricated number on missing data.
-- **Incumbent concentration** — top-incumbent share of expiring obligated dollars per DoD component;
-  thin markets show "Unknown". Descriptive only — no HHI number, no market-power bands.
-- Validator invariant groups 10–12 for the three reads, plus a **PII drift canary** over public
-  titles — `--sample` now runs **69 checks**.
-
-### Security
-- **Title redaction extended** (public artifacts only): beyond contact-intro forms (POC:/TPOC/CO:/
-  CS:/COR:/spelled-out), personnel-naming office codes now redact structurally — the suffixed
-  PK office family (PKA/PKF/PKH/PKS/PKP plus 4-letter forms like PKAA/PKAB and the transposed
-  PHK), two-dash PKB forms, the whole Navy N102 office family, slash-path bare-PK offices, and
-  leading-surname chains before an office code. Rules are enumeration-verified against the full
-  snapshot; an independent validator canary — and a hard PII gate inside the Release builder —
-  fail the build if a name-shaped token reaches any public artifact.
-
-## [2.1.0] — 2026-07-08 — One library, sample-first data, FY2019–2026 snapshot (data dated 2026-07-07)
-
-### Changed
-- **The app now ships with its library.** `src/` + `config/` are included and the app imports the
-  same scoring/quality/price-range code the pipeline runs (the inlined scorer, quality, and PTW
-  mirrors were collapsed at the source — one source of truth, enforced by identity tests there).
-  `requirements.txt` adds `PyYAML`.
-- **Sample-first data.** The committed `data/powerbi/` snapshot is replaced by a 5,000-candidate
-  seeded, referentially-intact subsample at `data/sample/` (same schema, KPIs recomputed for the
-  sample, badged `SAMPLE DATA` in the app). The full 2026-07-07 snapshot (FY2019–2026:
-  35,964 candidates, 5,764 active-forward ≈ $50.0B, 29,343 quarantined) is too large to commit
-  (~476 MB CSV) and ships as the `data-snapshot-2026-07-07` GitHub Release (that release and tag
-  were later deleted — the tag pointed at a pre-redaction commit; superseded by
-  `data-snapshot-2026-07-15`); `scripts/download_data.py` fetches it into `data/powerbi/` for
-  full-data local runs.
-- The prior committed snapshot (2026-07-05) predates scoring fixes in the current library and no
-  longer satisfies scorer parity — removed rather than shipped stale.
-
-### Security
-- Published artifacts (sample + Release) exclude `fact_contract_awards.description_raw` and
-  `classification_reason`, and whole-redact the handful of titles carrying an explicit
-  point-of-contact intro (POC:/ATTN:/COR TO — contracting-officer person names). Continues the
-  2026-07-06 scrub-co-names decision; enforced in the source repo's `build_sample.py` +
-  `build_release.py` tooling and by the shipped validator (invariant 9, runs in this repo's CI).
 
 ## [2.0.1] — 2026-07-05 — Portfolio-review fixes
 
@@ -346,13 +304,19 @@ into it (honesty rule #9; the validator's scorer-parity firewall stays green).
 - **Price-range strength on loose comparables.** Any tier-D competitive-price-range (which drops the
   incumbent size-band mask) is now labeled **Weak** rather than at most Moderate — a tier-D comparable
   set can sit far outside the incumbent's own run-rate and must not read as trustworthy.
-- **Expired contracts no longer bucket forward.** Expiration bucketing is unified so a past-due
-  contract reads `"Expired — verify"` (never the forward `"0-6 Months"` window); missing-end-date rows
-  fall to the Data Gap tier.
+- **Expired contracts no longer bucket forward.** `build_recompete_candidates` now derives the
+  expiration bucket via the single `quality_flags.derive_bucket` (182-day boundaries; past-due →
+  `"Expired — verify"`; missing date → Data Gap), so a past-due contract can never land in the forward
+  `"0-6 Months"` bucket even before the rebake gate.
+- **Backtest honesty.** `ptw_backtest` no longer claims "no predecessor→successor pairs on current
+  data" (they exist, but are same-IDV task-order noise); added a `date_signed ≤ predecessor pop_end`
+  guard so the out-of-sample test builds no range from awards that didn't yet exist.
 
 ### Changed
-- **Data rebaked** on the 2026-07-05 public snapshot; all `validate_data.py` invariants pass.
-  Tier 1 26 → 25 (a two-day date shift; scorer parity max-abs-diff 0.0).
+- **Faster ETL.** Opportunity linking vectorized with `rapidfuzz.process.cdist` (result-identical to
+  the per-pair path, proven by parity test).
+- **Data rebaked** on the 2026-07-05 snapshot; all `validate_data.py` invariants pass. Tier 1 26 → 25
+  (a two-day date shift; scorer parity max-abs-diff 0.0).
 
 ## [2.0.0] — 2026-07-03 — Demo-grade honesty overhaul
 

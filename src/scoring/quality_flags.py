@@ -5,7 +5,8 @@ Title flags, title cleaning, and status/bucket derivation. THE one copy: the app
 (rescore.py, data.py), the rebake/validate scripts, and the pipeline exporter all
 import from here (app.py puts src/ on sys.path — the same Option D pattern as the
 scorer). The former byte-for-byte mirror at streamlit_app/components/quality.py was
-collapsed into this module; tests/test_quality.py exercises it directly. Kept
+collapsed into this module; the data-contract validator (`scripts/validate_data.py`) exercises
+it in the deploy, and `tests/test_quality.py` covers it directly in the source repo. Kept
 deliberately dependency-light (pandas only).
 
 Design: the product's brand is honesty. Unknown != good. A raw FPDS record dump or a

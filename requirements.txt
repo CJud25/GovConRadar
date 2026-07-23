@@ -1,8 +1,12 @@
-streamlit==1.58.0
+# Runtime dependencies, pinned to the known-good working set (Python 3.10+).
+# Pipeline (run_pipeline.py) + Streamlit app both draw from this list.
+# Dev/test tools live in requirements-dev.txt.
+requests==2.34.2
 pandas==3.0.3
 numpy==2.5.0
-plotly==6.8.0
-pyarrow==24.0.0
-PyYAML==6.0.3
+python-dotenv==1.2.2
 rapidfuzz==3.14.5
-requests==2.34.2
+PyYAML==6.0.3
+pyarrow==24.0.0
+streamlit==1.58.0
+plotly==6.8.0

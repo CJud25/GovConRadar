@@ -63,6 +63,29 @@ def _check_app_boot() -> int:
     return 0
 
 
+def _check_explorer_empty_search() -> int:
+    """Drive the Explorer global Search to a guaranteed no-match term and assert the script
+    does not raise. Regression guard for the duplicate keyless _empty_fig plotly-id crash: an
+    empty result set is the single most ordinary workbench action and must degrade to a
+    'no matches' state, never a fatal error."""
+    from streamlit.testing.v1 import AppTest
+    app = ROOT / "streamlit_app" / "app.py"
+    page = AppTest.from_file(str(app), default_timeout=90)
+    page.run()
+    page.switch_page("views/explorer.py")
+    page.run()
+    target = next((t for t in page.text_input if (t.label or "").strip().lower() == "search"), None)
+    if target is None:
+        print("SMOKE FAIL [explorer empty search]: Search input not found", flush=True)
+        return 1
+    target.set_value("ZZZNOMATCH_NO_RESULTS")
+    page.run()
+    if page.exception:
+        print(f"SMOKE FAIL [explorer empty search]: {page.exception}", flush=True)
+        return 1
+    return 0
+
+
 def _check_company_form_submit() -> int:
     """Submit the Company-profile form and assert it does not raise.
 
@@ -105,7 +128,7 @@ def _check_company_form_submit() -> int:
 
 
 def main() -> int:
-    for step in (_check_config, _check_app_boot, _check_company_form_submit):
+    for step in (_check_config, _check_app_boot, _check_explorer_empty_search, _check_company_form_submit):
         rc = step()
         if rc != 0:
             return rc

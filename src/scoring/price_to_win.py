@@ -58,7 +58,8 @@ PTW_CANDIDATE_COLUMNS = [
 _TIER_ORDER = ["A", "B", "C", "D"]
 
 
-# ─── pure numeric helpers (unit-tested in isolation) ──────────────────────────
+# ─── pure numeric helpers (covered by the source-repo unit tests; the deploy gate is
+# `scripts/validate_data.py`) ──────────────────────────
 def elapsed_years(start, end, as_of, min_years, max_years):
     """Years from PoP start to min(end, as_of) — the ELAPSED term — clamped to
     [min_years, max_years]. Returns None when dates are missing/degenerate."""

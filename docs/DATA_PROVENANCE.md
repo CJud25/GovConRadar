@@ -35,15 +35,16 @@ certainly already been re-awarded and is dead data, not a lead. A contract expir
 
 ## Derived data & the rebake
 
-`scripts/rebake_data.py` regenerates every derived column and rollup deterministically from the fact
-tables (see [`DATA_DICTIONARY.md`](DATA_DICTIONARY.md)). It never invents facts — it only derives from
-shipped columns. `scripts/validate_data.py` then proves every KPI re-derives from the facts and the
-app's live re-score reproduces the baked scores exactly.
+`scripts/rebake_data.py` (private build repo — not shipped in this public repo) regenerates every
+derived column and rollup deterministically from the fact tables (see [`DATA_DICTIONARY.md`](DATA_DICTIONARY.md)).
+It never invents facts — it only derives from shipped columns. `scripts/validate_data.py` then proves
+every KPI re-derives from the facts and the app's live re-score reproduces the baked scores exactly.
 
 ## Sample data (`streamlit_app/assets/sample_data/`)
 
 The bundled sample is a small synthetic subset produced by `streamlit_app/generate_sample_data.py`
 (which runs real transform/scoring logic over mock inputs), then passed through the same
-`rebake_data.py` so it carries identical v2 columns. It lets the app run on Streamlit Community Cloud
+`rebake_data.py` (private build repo — not shipped in this public repo) so it carries identical v2
+columns. It lets the app run on Streamlit Community Cloud
 with **no pipeline and no API access**. It is clearly badged `SAMPLE DATA` in the app and must never be
 presented as real awards. The `is_demo` vendor profile is likewise labeled a demo throughout.

@@ -1,7 +1,40 @@
 table,field,description,data_type,is_estimate
 fact_recompete_candidates,candidate_id,Synthetic ID: RC- prefix + source award ID,string,False
 fact_recompete_candidates,selected_expiration_date,"current_end_date if potential_end_date is null, else potential_end_date",date,False
-fact_recompete_candidates,expiration_date_basis,Which date was used: current_end_date / potential_end_date / unknown,string,False
+fact_recompete_candidates,expiration_date_basis,Which date was used: current_end_date / potential_end_date / unknown / terminated (a complete_likely termination retargeted the expiration to the termination date),string,False
+fact_recompete_candidates,terminated,FACT — some transaction carried a termination reason-for-modification code (action_type_code E/F/X/N; K=Close Out is never a termination),bool,False
+fact_recompete_candidates,termination_code,"FACT — earliest termination code (E=default, F=convenience, X=cause, N=legal cancellation); empty when not terminated",string,False
+fact_recompete_candidates,termination_action_date,FACT — earliest termination transaction's action date; empty when not terminated,date,False
+fact_recompete_candidates,termination_kind,"ESTIMATE (inferred, conservative) — complete_likely only when the reported current end collapsed to within 31 days of the termination date; else partial_or_unclear; none when not terminated. DoD FPDS reporting lags ~90 days.",string,True
+fact_recompete_candidates,termination_basis,Basis for the termination read: observed_code / none,string,True
+fact_recompete_candidates,mod_count,FACT — distinct FPDS transactions observed for the award in the loaded fiscal-year window,int,False
+fact_recompete_candidates,mod_velocity,ESTIMATE — mod_count per active PoP-year; empty when history is unreadable (single transaction / unusable dates),float,True
+fact_recompete_candidates,mod_velocity_band,ESTIMATE — low / normal / high (fitted priors in config/mods_signal.yaml) / not_applicable,string,True
+fact_recompete_candidates,ceiling_growth_ratio,Derived from facts — last/first positive CUMULATIVE ceiling (potential_total_value_of_award) across the award's transactions; empty when <2 positive readings,float,False
+fact_recompete_candidates,ceiling_balloon_flag,ESTIMATE — ceiling_growth_ratio above the fitted balloon threshold (1.5),bool,True
+fact_recompete_candidates,ceiling_basis,Basis for the ceiling read: measured / insufficient,string,True
+fact_recompete_candidates,has_deobligation,ESTIMATE (weak) — a non-closeout transaction below the deobligation floor before the planned end; never labeled a cancellation,bool,True
+fact_recompete_candidates,bridge_flag,"ESTIMATE — a non-competed (extent B/C/G) transaction pushed the current end >30 days past the ORIGINAL planned end (FPDS codes only, never text)",bool,True
+fact_recompete_candidates,bridge_basis,Basis for the bridge read: observed / insufficient,string,True
+fact_recompete_candidates,mods_basis,History-coverage label for the count/velocity/ceiling reads: measured / single_transaction / insufficient,string,True
+fact_recompete_candidates,successor_visible,ESTIMATE (inferred) — a later award in the same NAICS x PSC-class x DoD-component cell shows FPDS activity after this end date (same-parent-IDV task orders and the award itself excluded); empty = Unknown (thin cell),bool,True
+fact_recompete_candidates,successor_visible_basis,Basis: observed / none_visible (no successor visible in public data yet — DoD reporting lags ~90 days; NEVER a 'missed recompete') / insufficient_cell,string,True
+fact_recompete_candidates,displacement_signal_count,ESTIMATE — how many of the readable displacement signals fired (bridge / termination / deobligation / lapsed_no_successor / sole_offer / size_shift); empty = Unknown (insufficient coverage). A categorical lane — NEVER blended into pursuit_score or any tier.,int,True
+fact_recompete_candidates,displacement_signals_read,Coverage fact — how many of the 6 displacement inputs were readable on this record,int,False
+fact_recompete_candidates,displacement_signals,ESTIMATE — '+'-joined slugs of the fired displacement signals ('none' when none fired); empty = Unknown,string,True
+fact_recompete_candidates,displacement_unread,Coverage fact — '+'-joined slugs of the displacement inputs that could NOT be read ('none' when all 6 read),string,False
+fact_recompete_candidates,displacement_band,ESTIMATE — multiple_signals / single_signal / none_observed / not_applicable (insufficient coverage),string,True
+fact_recompete_candidates,displacement_basis,"Basis for the displacement lane: observed / insufficient (fewer than min_signals_read readable inputs — Unknown, never guessed)",string,True
+dim_vendor,size_standard_shift,"ESTIMATE (directional, per-procurement) — the vendor's same-NAICS awards' CO size determination moved S (small) to O (other-than-small) over time; empty = Unknown (insufficient determinations). Never a vendor-size verdict.",bool,True
+dim_vendor,size_standard_basis,"Named basis for size_standard_shift (counts + codes per the flagged NAICS cell, or the insufficient label)",string,True
+dim_agency,concentration_top_share,"Derived from facts — the top incumbent's share of the component's attributed (UEI-known) expiring obligated dollars within the REPORTABLE (Data-Gap-excluded) set — the denominator excludes dollars with no incumbent UEI (bounded by the coverage gate); a ratio of two sums of published obligated-dollar facts (like hhi_concentration); empty = Unknown (see concentration_basis). NOT market share, market power, or contestability.",float,False
+dim_agency,concentration_n_ueis,"Coverage fact — distinct positive-net incumbent UEIs in the component's reportable set (always published, even when the share is Unknown)",int,False
+dim_agency,concentration_basis,"Basis for the concentration read: observed / insufficient (thin market, low UEI coverage, no positive dollars, or no reportable rows — Unknown, never guessed)",string,True
+dim_agency,concentration_reason,Named refusal reason when concentration_basis is insufficient; empty when observed,string,True
+fact_transactions,transaction_id,"FACT — unique per emitted transaction ({award_id}:{modification_number}, deterministically suffixed on collision)",string,False
+fact_transactions,action_type_code,"FACT — FPDS reason-for-modification code of the signal-bearing transaction (E/F/X/N terminations, K closeouts, etc.)",string,False
+fact_transactions,action_obligation,FACT — the transaction's obligation delta (federal_action_obligation),float,False
+fact_transactions,description,FACT — transaction free text (bounded); LOCAL export only — excluded from every public artifact (sample + Release) and PII-scrubbed locally,string,False
 fact_recompete_candidates,estimated_recompete_window_start,ESTIMATE — not an official government date. See scoring_methodology.md,date,True
 fact_recompete_candidates,estimated_recompete_window_end,ESTIMATE — not an official government date. See scoring_methodology.md,date,True
 fact_recompete_candidates,pursuit_score,"ESTIMATE — weighted composite of 8 component scores, 0-100",float,True
@@ -9,6 +42,10 @@ fact_recompete_candidates,priority_tier,ESTIMATE — derived from pursuit_score 
 fact_contract_awards,naics,NAICS code as reported by USAspending,string,False
 fact_contract_awards,psc,Product/Service Code as reported by USAspending,string,False
 fact_contract_awards,classification_confidence,ESTIMATE — High/Medium/Low/Not Classified rules-based classification,string,True
-dim_vendor,incumbent_vulnerability_score,"ESTIMATE — derived from public signals only (short PoP, unknown follow-on)",float,True
+dim_vendor,incumbent_vulnerability_score,ESTIMATE — value-weighted share of the vendor's forward book (days_until_expiration >= 0) expiring within 180 days; empty = Unknown (see vulnerability_basis). Read next to number_of_cyber_it_awards (n). See scoring_methodology.md,float,True
+dim_vendor,vulnerability_basis,"Basis for incumbent_vulnerability_score: value_weighted_near_term_share (score present) / no_forward_book / insufficient_expiration_coverage (score empty — Unknown, never an imputed 0)",string,True
+dim_vendor,pct_value_expired,Share (%) of the vendor's total obligated value on already-expired rows (days_until_expiration < 0) — excluded from the vulnerability denominator,float,False
+dim_vendor,pct_value_unknown_expiration,Share (%) of the vendor's total obligated value with no usable expiration date — excluded from the vulnerability denominator,float,False
 internal_only,VENDOR_PROFILE_SYNTHETIC,SYNTHETIC — the pursuing vendor profile used by scoring.py is entirely fictional (see config.py). It is never exported to any Tableau CSV; it only informs pursuit_score/priority_tier calculations.,n/a,True
 bridge_award_opportunity_links,link_confidence,ESTIMATE — fuzzy-match confidence; 'No Match' for all rows until SAM.gov data is pulled locally,string,True
+streamlit_app view: Market map,hhi_concentration,"Descriptive incumbent obligated-dollar concentration (top-incumbent dollar-share + incumbent count) of the expiring reportable set (Data Gap excluded), computed live in scoring.market_concentration.compute_hhi_concentration. A ratio of two sums of published obligated-dollar facts — a fact, not an estimate. Markets below min_market_ueis distinct incumbents or the UEI-coverage floor render 'Unknown' — never an imputed number. NOT a market-power, market-share, or contestability claim. The SAME read is baked per-component onto dim_agency as the concentration_* columns (annotate_agency_concentration) for the capture brief's Office section. See scoring_methodology.md",float,False

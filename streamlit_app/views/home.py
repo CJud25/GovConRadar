@@ -89,11 +89,18 @@ def main():
     st.write("")
 
     # ---- KPI cards (4 always + 1 column-guarded bridge-watch card) ----
+    _tiers_sel = (sel.get("priority_tier") or [])
+    if not _tiers_sel:
+        _tier_scope = "all tiers"
+    elif len(_tiers_sel) == 1:
+        _tier_scope = _tiers_sel[0].split(":")[0]          # e.g. "Tier 1"
+    else:
+        _tier_scope = f"{len(_tiers_sel)} tiers"
     kpis = [
         {"label": "Tier 1 — Pursue Now", "value": f"{tier1:,}", "accent": theme.REDORANGE,
          "sub": f"{tier1_12_count:,} in next 12 mo · {tier1_expired:,} already expired"},
         {"label": "Actionable value ≤ 12 mo", "value": theme.usd_short(actionable_12), "accent": theme.STEEL,
-         "sub": f"{int(exp_12_mask.sum()):,} contracts expiring · all tiers"},
+         "sub": f"{int(exp_12_mask.sum()):,} contracts expiring · {_tier_scope}"},
         {"label": "Median runway", "value": median_label, "accent": theme.AMBER,
          "sub": "median time to expiration"},
         {"label": "Top-5 incumbent share", "value": f"{top5_share:.0f}%", "accent": theme.NAVY,
@@ -120,7 +127,15 @@ def main():
         st.markdown('<div class="rr-title" style="font-size:16px">T-minus runway — Tier 1 & 2</div>',
                     unsafe_allow_html=True)
         focus = df[df["priority_tier"].isin(["Tier 1: Pursue Now", "Tier 2: Capture Research"])]
-        st.plotly_chart(charts.recompete_timeline(focus, height=430), width="stretch")
+        # Cap the runway to the soonest-to-expire upcoming candidates — the full-set timeline overlaps and
+        # clips labels. The complete set stays reachable via the Explorer capture calendar.
+        RUNWAY_CAP = 15
+        upcoming = focus[focus["days_until_expiration"].notna() & (focus["days_until_expiration"] >= 0)]
+        runway = (upcoming if not upcoming.empty else focus).sort_values("days_until_expiration").head(RUNWAY_CAP)
+        st.plotly_chart(charts.recompete_timeline(runway, height=430), key="home_runway", width="stretch")
+        if len(upcoming) > RUNWAY_CAP:
+            st.caption(f"Showing the {RUNWAY_CAP} soonest-to-expire of {len(upcoming):,} Tier 1–2 candidates "
+                       "— open the Explorer capture calendar for the full set.")
     with radar:
         st.markdown('<div class="rr-title" style="font-size:16px">On the radar</div>', unsafe_allow_html=True)
         st.caption("Soonest to expire, in view")
@@ -138,15 +153,16 @@ def main():
     t_timing, t_where, t_who = st.tabs(["  Timing  ", "  Where  ", "  Who  "])
     with t_timing:
         c1, c2 = st.columns(2)
-        c1.plotly_chart(charts.value_by_bucket(df), width="stretch")
-        c2.plotly_chart(charts.capture_phase_bar(df), width="stretch")
+        c1.plotly_chart(charts.value_by_bucket(df), width="stretch", key="home_bucket")
+        c2.plotly_chart(charts.capture_phase_bar(df), width="stretch", key="home_phase")
     with t_where:
-        st.plotly_chart(charts.state_choropleth(df, height=440), width="stretch")
+        st.plotly_chart(charts.state_choropleth(df, height=440), width="stretch", key="home_map")
     with t_who:
         w1, w2 = st.columns(2)
-        w1.plotly_chart(charts.top_bar(df, "subagency", "Top DoD components by pipeline value"), width="stretch")
+        w1.plotly_chart(charts.top_bar(df, "subagency", "Top DoD components by pipeline value"),
+                        width="stretch", key="home_top_component")
         w2.plotly_chart(charts.top_bar(df, "incumbent_vendor", "Top incumbents by pipeline value"),
-                        width="stretch")
+                        width="stretch", key="home_top_incumbent")
 
     st.divider()
 

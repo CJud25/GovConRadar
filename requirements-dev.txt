@@ -1,2 +1,10 @@
+# Dev/test dependencies. Install with:  py -m pip install -r requirements-dev.txt
 -r requirements.txt
-duckdb==1.5.4
+pytest==9.1.1
+ruff==0.15.20
+mypy==2.1.0            # scoped strict type gate over Shot A packages (see pyproject [tool.mypy])
+types-requests==2.33.0.20260518   # stubs for the SAM/USAspending live clients' requests calls
+# NOTE: pandas-stubs deliberately NOT pinned — numpy 2.5's bundled stubs use `type` statement
+# syntax that mypy rejects under python_version=3.10 (the repo's floor). Adding it would force
+# the type target to 3.12, inconsistent with ruff's py310 target. Revisit if the floor rises.
+duckdb==1.5.4          # run_sql.py — SQL query pack over the star schema (sql/)

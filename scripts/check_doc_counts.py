@@ -50,6 +50,9 @@ PINS = [
     ("docs/methodology_notes.md", r"measured: ([\d,]+) of", "linked_candidate_count", "full"),
     ("docs/methodology_notes.md", r"of ([\d,]+); the app", "recompete_candidate_count", "full"),
     ("docs/methodology_notes.md", r"notice on the (\d{4}-\d{2}-\d{2}) snapshot", "snapshot_date", "full"),
+    # S18: the README "How we compare" restatement of the same coverage figure wasn't
+    # pinned — without this it could silently drift out of sync with methodology_notes.md.
+    ("README.md", r"dropped \*\*4,163 → ([\d,]+)\*\*", "linked_candidate_count", "full"),
     # Measurement-threshold pins (S20): the README promise must state the SAME floors
     # config/measurement.yaml pins — prose drift here would misstate the publication gate.
     ("README.md", r"≥(\d+) labels per link tier", "min_labels_per_tier", "sample"),

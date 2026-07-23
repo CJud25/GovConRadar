@@ -1,4 +1,4 @@
-﻿# Standard Operating Procedure — GovCon Recompete Radar Snapshot Refresh & Deploy
+# Standard Operating Procedure — GovCon Recompete Radar Snapshot Refresh & Deploy
 
 | Field | Value |
 |---|---|
@@ -144,6 +144,19 @@ badged `SAMPLE DATA` in the app, and must **never** be presented as real awards.
 vendor profile is labeled a demo throughout. Never present synthetic vendor/scoring data as
 real.
 
+### 4.6 Sources Sought / RFI early-warning lane currency (E1)
+The Pipeline Explorer's "Early warning — Sources Sought / RFI" lane reads Sources Sought and
+Request for Information notices already baked into `fact_opportunity_notices` — it makes no
+live SAM.gov API call and performs no new ingest. **Its currency is a direct function of Step 1
+(Section 6.1)**: refreshing the SAM bulk export (`SAM.gov data/ContractOpportunitiesFullCSV.csv`)
+and re-running `run_pipeline.py` is the *only* way new Sources Sought / RFI notices reach this
+lane, because the live SAM.gov Opportunities API returns nothing without a key
+(`docs/data_acquisition_plan.md`, Source 2). An Operator who needs an up-to-date early-warning
+lane for a demonstration must confirm the SAM bulk CSV was refreshed before Step 1, not merely
+that the rebake/validate/test loop is green — a green gate on a stale bulk export still ships a
+stale lane. This is a staleness risk only: a snapshot with zero in-scope notices renders an
+honest empty lane (`src/scoring/notice_lens.py`), never a fabricated one.
+
 ---
 
 ## 5. Prerequisites
@@ -268,15 +281,40 @@ the app **plus its library** and a committed seeded sample — no `data/powerbi/
 gh repo clone CJud25/GovConRadar
 # From the project repo, overlay the git-tracked deploy subset (never a raw cp -r —
 # this cannot carry __pycache__/, *.pyc, or untracked strays):
-git archive master -- streamlit_app src config data/sample scripts/validate_data.py \
-  scripts/download_data.py pipeline_demo sql run_sql.py .streamlit docs/ARCHITECTURE.md \
+# Delete the clone's data/sample FIRST (the rebuild below replaces it; a stale file the
+# build doesn't produce would otherwise linger), then overlay. scripts/smoke_app.py MUST
+# ship — the deploy CI's boot gate runs it (2026-07-11: it was missing from this list).
+rm -rf <GovConRadar-clone>/data/sample
+git archive master -- \
+  streamlit_app src config sql run_sql.py pipeline_demo .streamlit .gitignore runtime.txt \
+  scripts/validate_data.py scripts/download_data.py scripts/smoke_app.py scripts/check_doc_counts.py \
+  README.md CHANGELOG.md requirements.txt requirements-dev.txt \
+  docs/ARCHITECTURE.md docs/DATA_DICTIONARY.md docs/DATA_PROVENANCE.md docs/DEMO_SCRIPT.md \
+  docs/SOP_Recompete_Radar_v2.1.md docs/methodology_notes.md docs/data_dictionary.csv docs/screenshots \
+  docs/scoring_methodology.md docs/labeling_protocol.md docs/ROADMAP.md \
   | tar -x -C <GovConRadar-clone>
+# The three methodology docs (scoring_methodology.md, labeling_protocol.md, ROADMAP.md) ship
+# because public docs and the in-app Methodology page reference them. Public-only files NOT
+# produced by this overlay: .github/workflows/ci.yml, FUTURE IMPROVEMENTS.md, LICENSE — these
+# are maintained directly in the deploy repo (ci.yml is git-tracked in THIS private repo too,
+# but as a DIFFERENT file that runs the private pytest gate — never add it to this allowlist,
+# it would overwrite the public script-based CI). data/sample is rebuilt below, not overlaid.
 # Rebuild the deploy's richer sample from the fresh snapshot, then verify IN the clone:
 py scripts/build_sample.py --rows 5000 --out <GovConRadar-clone>/data/sample
-(cd <GovConRadar-clone> && python scripts/validate_data.py --sample && python scripts/check_doc_counts.py && python scripts/smoke_app.py)
+py scripts/check_doc_counts.py --data data/powerbi   # doc pins vs the fresh bake (run in THIS repo, after every rebake)
+(cd <GovConRadar-clone> && py scripts/validate_data.py --sample && py scripts/check_doc_counts.py && py scripts/smoke_app.py)
 git add -A && git commit -m "deploy: sync snapshot <YYYY-MM-DD>"
 git push
 ```
+
+> **Control — deploy-specific doc truth (re-apply after EVERY overlay).** The overlay
+> brings the SOURCE repo's README, whose repo-specific claims are false in the
+> deploy: fix the badge (the deploy CI runs the validator check count + smoke boot, NOT the
+> pytest suite), drop `pytest`/`rebake_data.py`/`build_sample.py` from the quickstart (they
+> don't ship here), and re-measure every sample-specific number (sample row count, SQL-pack
+> row counts, largest-CSV size) against the clone's rebuilt 5,000-row sample — never carry
+> the source repo's 200-row figures. These edits live only in the deploy repo and are
+> clobbered by the next overlay by design; this note is the checklist for redoing them.
 
 > **Control — PUBLIC-artifact PII policy (re-verify on EVERY new snapshot).** The
 > contact-title redaction (`transform.cleaning.CONTACT_TITLE_RE`) was enumeration-verified
@@ -299,11 +337,31 @@ git push
 |---|---|
 | Sample completeness | The synced `data/sample/` set **MUST include `fact_ptw_comparables`** (the app's live price-range recompute reads it) **and `fact_opportunity_notices`** (Contract Detail joins it via `bridge_award_opportunity_links` to render linked SAM.gov notices) — `build_sample.py` carries both by construction; `validate_data.py --sample` in the clone is the gate. |
 | Config location | **`.streamlit/config.toml` MUST be at the deploy repo ROOT**, not `streamlit_app/.streamlit/`. A copy inside `streamlit_app/` is never loaded. It sets `showErrorDetails="none"` so tracebacks/paths never reach public users. |
-| Library completeness | `src/` and **all six** `config/*.yaml` ship together (`utils.config` eagerly loads every yaml at import) and `requirements.txt` carries `PyYAML` — a partial tree crashes the app on first page load. |
-| PII policy | `validate_data.py --sample` (invariant 9) passes in the clone: no public-excluded columns, no contact-marked titles. |
+| Library completeness | `src/` and **all ten** `config/*.yaml` ship together (`utils.config` eagerly loads every yaml at import) and `requirements.txt` carries `PyYAML` — a partial tree crashes the app on first page load. **Boot-critical yamls (any one missing/malformed white-screens the whole app with `FileNotFoundError`/`ScannerError` before a page renders): all ten load at import; the three added by the 2026-07 update are `burn_pressure.yaml`, `reason_codes.yaml`, `hhi_concentration.yaml`; the tenth, added by the mods release, is `mods_signal.yaml` (and `config/recompete.yaml` gained the two successor-proxy keys).** The `scripts/smoke_app.py` step above is the enforced boot check — it imports `utils.config` (loading + asserting every yaml, failing loud and naming the offending file) and then boots the app entrypoint via Streamlit's `AppTest` harness, so a missing/malformed yaml or a boot-time crash fails the deploy loudly (not silently). Exhaustive per-view rendering is the CI gate (`py scripts/check.py`). |
+| PII policy | `validate_data.py --sample` (invariant 9) passes in the clone: no public-excluded columns, no contact-marked titles. Note: `--sample` now also runs **invariant group 11 (reason-codes honesty)** — `config/reason_codes.yaml` is load-bearing for CI, not just the app, so a casual template/taxonomy edit that lets a digit into a `missing` chip (or empties a row's chip list) turns `--sample` red by design. |
 
 - **Gate:** push succeeds and the deploy subset is complete and correctly placed per the table
   above.
+
+### 6.7a Optional — digest delivery & CRM lead export (mods release)
+
+After a refresh, the retained snapshots can drive a pushed digest and a CRM-shaped lead file:
+
+```bash
+# Preview exactly what would be sent (no transport, no env needed):
+py scripts/send_digest.py --prev data/snapshots/<prior> --curr data/snapshots/<new> \
+  --mode action_needed --dry-run
+# Push it (email OR webhook; missing/partial config is a LOUD non-zero exit, never a silent skip):
+py scripts/send_digest.py --prev ... --curr ... --mode action_needed
+# CRM leads (formula-injection-defused CSV keyed by candidate_id):
+py scripts/export_crm_leads.py --in data/powerbi --out crm_leads.csv --tier-1-only
+```
+
+Delivery secrets are environment-only (never committed; `.env` is git-ignored — names, not
+values, are listed in `.env.example`): `GOVCONRADAR_SMTP_HOST` / `_PORT` / `_USER` / `_PASS` /
+`_FROM` / `_TO` (comma-separable) for email, **or** `GOVCONRADAR_WEBHOOK_URL` for webhook.
+Every delivered body and CRM row carries the fixed FPDS-lag disclosure; user-facing copy says
+"digest"/"update", never "alert".
 
 ### 6.8 Step 8 — Streamlit Cloud reboot & confirm
 Streamlit Cloud syncs files on push but does **not** reliably restart the running process.

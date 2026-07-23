@@ -151,6 +151,12 @@ else:
     st.caption("No opportunity-bridge data loaded in this dataset.")
 
 st.subheader("Measured trust — what is verified, and what is not yet")
+st.caption(
+    "These trust metrics are computed on the **full published snapshot** (n≈35,964 candidates), "
+    "not the smaller sample this deployment runs — so the counts here (and the Data-Gap quarantine "
+    "share) are larger than the sample figures shown on Home. The linkage rate above is recomputed "
+    "live on the loaded data."
+)
 _trust = ctx.get("trust_metrics")
 if _trust is None or _trust.empty:
     st.caption("Trust metrics not present in this dataset.")

@@ -416,10 +416,14 @@ def sidebar_filters(candidates: pd.DataFrame) -> dict:
             qv = _qp_list("val")
             dv = (float(qv[0]), float(qv[1])) if len(qv) == 2 else (vmin, vmax)
             dv = (max(vmin, dv[0]), min(vmax, dv[1]))
-            vr_val = st.sidebar.slider(
-                "Estimated value ($)", min_value=vmin, max_value=vmax, value=dv, format="$%d", key="flt_val"
-            )
-            narrowed = tuple(vr_val) != (vmin, vmax)
+            # Display in $millions so endpoints read "$0.25M–$627.46M", not a raw 9-digit number.
+            # Filtering + ?val= round-trip stay in raw dollars.
+            _S = 1_000_000.0
+            vr_m = st.sidebar.slider(
+                "Estimated value ($M)", min_value=vmin / _S, max_value=vmax / _S,
+                value=(dv[0] / _S, dv[1] / _S), format="$%.2fM", key="flt_val")
+            vr_val = (vr_m[0] * _S, vr_m[1] * _S)
+            narrowed = vr_m != (vmin / _S, vmax / _S)
             if narrowed:  # only an "active filter" when the user actually narrows the range
                 sel["value_range"] = vr_val
             _qp_set("val", list(vr_val) if narrowed else [])

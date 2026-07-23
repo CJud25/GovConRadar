@@ -18,7 +18,7 @@ from dimensions to facts:
 
 Buckets, tiers, and capture phases ship as Python-computed columns WITH sort-order
 companions (not DAX SWITCH logic) so the model stays thin and visuals sort/color
-consistently off the dims. See powerbi/report_spec.md.
+consistently off the dims. See powerbi/report_spec.md in the private build repo.
 """
 
 from datetime import date, timedelta
